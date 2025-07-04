@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timedelta
 
 import jwt
-from fastapi import HTTPException, status
+import bcrypt
 
 from src.config.settings import settings
 
@@ -14,9 +14,9 @@ REFRESH_TOKEN_TYPE = "refresh"
 
 def encode_jwt(
     payload: dict,
-    private_key: str = settings.auth_jwt.private_key_path.read_text(),
-    algorithm: str = settings.auth_jwt.algorithm,
-    expire_minutes: int = settings.auth_jwt.access_token_expire_minutes,
+    private_key: str = settings.PRIVATE_KEY_PATH.read_text(),
+    algorithm: str = settings.ALGORITHM,
+    expire_minutes: int = settings.ACCESS_TOKEN_EXPIRE_MINUTES,
     expire_timedelta: timedelta | None = None,
 ) -> str:
     to_encode = payload.copy()
@@ -40,8 +40,8 @@ def encode_jwt(
 
 def decode_jwt(
     token: str | bytes,
-    public_key: str = settings.auth_jwt.public_key_path.read_text(),
-    algorithm: str = settings.auth_jwt.algorithm,
+    public_key: str = settings.PUBLIC_KEY_PATH.read_text(),
+    algorithm: str = settings.ALGORITHM,
 ) -> dict:
     decoded = jwt.decode(
         token,
@@ -54,7 +54,7 @@ def decode_jwt(
 def create_jwt(
     token_type: str,
     token_data: dict,
-    expire_minutes: int = settings.auth_jwt.access_token_expire_minutes,
+    expire_minutes: int = settings.ACCESS_TOKEN_EXPIRE_MINUTES,
     expire_timedelta: timedelta | None = None,
 ) -> str:
     jwt_payload = {TOKEN_TYPE_FIELD: token_type}
@@ -66,14 +66,8 @@ def create_jwt(
     )
 
 
-def validate_token_type(
-    payload: dict,
-    token_type: str,
-) -> bool:
-    current_token_type = payload.get(TOKEN_TYPE_FIELD)
-    if current_token_type == token_type:
-        return True
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail=f"invalid token type {current_token_type!r} expected {token_type!r}",
-    )
+def get_hash_password(
+    password: bytes,
+) -> bytes:
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password, salt)

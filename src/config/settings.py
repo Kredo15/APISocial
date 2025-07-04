@@ -1,28 +1,29 @@
 from pathlib import Path
-from pydantic import BaseModel
-from pydantic_settings import BaseSettings
-from src.config.environment import DB_HOST, DB_USER, DB_PASSWORD, DB_NAME
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).parent.parent
 
 
-class AuthJWT(BaseModel):
-    private_key_path: Path = BASE_DIR / "certs" / "jwt-private.pem"
-    public_key_path: Path = BASE_DIR / "certs" / "jwt-public.pem"
-    algorithm: str = "RS256"
-    access_token_expire_minutes: int = 15
-    refresh_token_expire_days: int = 30
-
-
-class DbSettings(BaseModel):
-
-    database_url: str = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
-
-
 class Settings(BaseSettings):
-    db: DbSettings = DbSettings()
+    MODE: str
 
-    auth_jwt: AuthJWT = AuthJWT()
+    PRIVATE_KEY_PATH: Path = BASE_DIR / "certs" / "jwt-private.pem"
+    PUBLIC_KEY_PATH: Path = BASE_DIR / "certs" / "jwt-public.pem"
+    ALGORITHM: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
+    REFRESH_TOKEN_EXPIRE_DAYS: int
+
+    DB_HOST: str
+    DB_PORT: int
+    DB_USER: str
+    DB_PASS: str
+    DB_NAME: str
+
+    @property
+    def database_url(self):
+        return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+
+    model_config = SettingsConfigDict(env_file=f".env")
 
 
 settings = Settings()

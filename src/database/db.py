@@ -1,7 +1,10 @@
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.pool import NullPool
 
-engine = create_async_engine("postgresql+asyncpg://ecommerce:231592@localhost:5432/ecommerce")
+from src.config.settings import settings
+
+engine = create_async_engine(settings.database_url, poolclass=NullPool)
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
 

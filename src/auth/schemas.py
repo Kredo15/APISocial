@@ -2,10 +2,20 @@ from datetime import datetime
 
 from pydantic import BaseModel, EmailStr
 
-from src.profile.schemas import ProfileSchema
+
+class TokenAddSchema(BaseModel):
+    token: str
+    user_id: int
+    expires_at: datetime
 
 
-class TokenSchema(BaseModel):
+class TokenSchema(TokenAddSchema):
+    id: int
+    revoked: bool
+    created_at: datetime
+
+
+class TokenDataSchema(BaseModel):
     access_token: str
     refresh_token: str | None = None
     token_type: str = "Bearer"
@@ -14,7 +24,7 @@ class TokenSchema(BaseModel):
 class UsersAddSchema(BaseModel):
     email: EmailStr
     username: str
-    password: str
+    password: bytes
 
 
 class UsersSchema(UsersAddSchema):
@@ -30,3 +40,13 @@ class UsersSchema(UsersAddSchema):
 
 class UsersRelSchema(UsersSchema):
     profile: "ProfileSchema"
+
+
+class UsernameAuthSchema(BaseModel):
+    username: str
+    password: str
+
+
+class EmailAuthSchema(BaseModel):
+    email: EmailStr
+    password: str

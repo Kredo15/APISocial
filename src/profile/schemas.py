@@ -3,7 +3,6 @@ from datetime import date
 from pydantic import BaseModel
 
 from src.common.enums import GenderEnum, FamilyStatusEnum
-from src.auth.schemas import UsersSchema
 
 
 class ProfileAddSchema(BaseModel):
