@@ -1,13 +1,10 @@
-from datetime import datetime
-
 import bcrypt
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
-from src.auth.crud import get_user, get_user_for_email
+from src.auth.crud import get_user, get_user_for_email, get_token
 from src.auth.schemas import UsersSchema, UsernameAuthSchema, EmailAuthSchema
-from src.auth.services import TOKEN_TYPE_FIELD, REFRESH_TOKEN_TYPE
 
 
 def validate_password(
@@ -55,26 +52,10 @@ async def validate_auth_user(
     return user
 
 
-def validate_token_type(
-    payload: dict,
-    token_type: str,
+async def verify_refresh_token(
+        token: str,
+        username: str,
+        db: AsyncSession
 ) -> bool:
-    current_token_type = payload.get(TOKEN_TYPE_FIELD)
-    if current_token_type == token_type:
-        return True
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail=f"invalid token type {current_token_type!r} expected {token_type!r}",
-    )
-
-
-async def verify_refresh_token(payload: dict, username: str, db: AsyncSession):
-    db_token = get_token(payload.get(REFRESH_TOKEN_TYPE), username, db)
-    db_token = db.query(DBRefreshToken).filter(
-        DBRefreshToken.token == payload.get(REFRESH_TOKEN_TYPE),
-        DBRefreshToken.username == username,
-        DBRefreshToken.expires_at >= datetime.utcnow(),
-        DBRefreshToken.revoked == False
-    ).first()
-
+    db_token = get_token(token, username, db)
     return db_token is not None

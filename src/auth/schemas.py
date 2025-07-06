@@ -21,6 +21,10 @@ class TokenDataSchema(BaseModel):
     token_type: str = "Bearer"
 
 
+class RefreshTokenSchema(BaseModel):
+    refresh_token: str
+
+
 class UsersAddSchema(BaseModel):
     email: EmailStr
     username: str
@@ -36,10 +40,6 @@ class UsersSchema(UsersAddSchema):
     is_administrator: bool
     created_at: datetime
     last_login: datetime
-
-
-class UsersRelSchema(UsersSchema):
-    profile: "ProfileSchema"
 
 
 class UsernameAuthSchema(BaseModel):
