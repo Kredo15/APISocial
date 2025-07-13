@@ -3,7 +3,7 @@ from typing import Annotated
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends, HTTPException
-from sqlalchemy import insert, select
+from sqlalchemy import select, insert
 from pydantic import EmailStr
 
 from src.database.db import get_async_session
@@ -27,52 +27,69 @@ async def get_user_for_email(email: EmailStr,
     return user
 
 
-async def create_user(user: UsersAddSchema,
+async def create_user(user_data: UsersAddSchema,
                       db: Annotated[AsyncSession, Depends(get_async_session)]
-                      ) -> None:
-    db_user = await get_user(user.username, db)
-    if db_user:
+                      ) -> UsersSchema:
+    verify_user_db = await get_user(user_data.username, db)
+    if verify_user_db:
         raise HTTPException(status_code=400, detail="Username already registered")
-    hashed_password = get_hash_password(user.password)
-    await db.execute(insert(UsersOrm).values(username=user.username,
-                                             email=user.email,
-                                             password=hashed_password,
-                                             ))
-    await db.commit()
+    hashed_password = get_hash_password(user_data.password)
+    data = {
+        "email": user_data.email,
+        "username": user_data.username,
+        "password": hashed_password
+    }
+    user = await db.scalar(insert(UsersOrm).returning(UsersOrm), data)
+    return user
+
+
+async def update_last_login(user: UsersSchema,
+                            db: Annotated[AsyncSession, Depends(get_async_session)]
+                            ) -> None:
+    now = datetime.utcnow()
+    async with db:
+        user.last_login = now
+        await db.commit()
 
 
 async def add_refresh_token(refresh_token: str,
-                            username: str,
+                            user: UsersSchema,
+                            device_id: str,
                             db: Annotated[AsyncSession, Depends(get_async_session)]
                             ) -> None:
     now = datetime.utcnow()
     expire = now + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
-    await db.execute(insert(UsersOrm).values(
+    token = TokenOrm(
         token=refresh_token,
-        user=username,
+        user=user,
+        device_id=device_id,
         expires_at=expire
-    ))
+    )
+    async with db:
+        db.add(token)
+        await db.commit()
 
 
-async def get_token(token: str, username: str,
+async def get_token(token: str, user: UsersSchema,
                     db: Annotated[AsyncSession, Depends(get_async_session)]
                     ) -> TokenSchema:
     token_db = await db.scalar(select(TokenOrm).where(
-        TokenOrm.user == username,
+        TokenOrm.user == user,
         TokenOrm.token == token,
         TokenOrm.expires_at >= datetime.utcnow(),
-        TokenOrm.revoked == False).first()
+        TokenOrm.revoked == False)
     )
     return token_db
 
 
 async def revoke_refresh_token(token: str,
-                               db: Annotated[AsyncSession, Depends(get_async_session)]
+                               db: Annotated[AsyncSession, Depends(get_async_session)],
+                               device_id: str
                                ) -> None:
-    db_token = await db.query(TokenOrm).filter(
-        TokenOrm.token == token
-    ).first()
-
+    db_token = await db.execute(select(TokenOrm).filter(
+        TokenOrm.token == token,
+        TokenOrm.device_id == device_id
+    ))
     if db_token:
         db_token.revoked = True
         await db.commit()

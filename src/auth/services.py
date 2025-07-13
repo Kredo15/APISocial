@@ -12,6 +12,10 @@ ACCESS_TOKEN_TYPE = "access"
 REFRESH_TOKEN_TYPE = "refresh"
 
 
+def get_device_id() -> str:
+    return str(uuid.uuid4())
+
+
 def encode_jwt(
     payload: dict,
     private_key: str = settings.PRIVATE_KEY_PATH.read_text(),
@@ -29,6 +33,7 @@ def encode_jwt(
         exp=expire,
         iat=now,
         jti=str(uuid.uuid4()),
+        device_id=get_device_id(),
     )
     encoded = jwt.encode(
         to_encode,
@@ -39,7 +44,7 @@ def encode_jwt(
 
 
 def decode_jwt(
-    token: str | bytes,
+    token: bytes,
     public_key: str = settings.PUBLIC_KEY_PATH.read_text(),
     algorithm: str = settings.ALGORITHM,
 ) -> dict:
@@ -67,7 +72,7 @@ def create_jwt(
 
 
 def get_hash_password(
-    password: bytes,
-) -> bytes:
-    salt = bcrypt.gensalt()
-    return bcrypt.hashpw(password, salt)
+    password: str,
+) -> str:
+    pwhash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    return pwhash.decode('utf-8')

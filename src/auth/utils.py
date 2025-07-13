@@ -12,21 +12,28 @@ from src.auth.schemas import UsersSchema, TokenDataSchema
 from src.auth.services import (
     create_jwt,
     decode_jwt,
+    get_device_id,
     ACCESS_TOKEN_TYPE,
     REFRESH_TOKEN_TYPE
 )
-from src.auth.crud import get_user, add_refresh_token
+from src.auth.crud import (
+    get_user,
+    add_refresh_token,
+    update_last_login
+)
 
 
 async def create_tokens(user: UsersSchema,
-                        db: AsyncSession
+                        db: AsyncSession,
+                        device_id: str = get_device_id()
                         ) -> TokenDataSchema:
     access_token = create_access_token(user)
     refresh_token = create_refresh_token(user)
-    await add_refresh_token(refresh_token, user.username, db)
+    await add_refresh_token(refresh_token, user, device_id, db)
+    await update_last_login(user, db)
     return TokenDataSchema(
-            access_token=access_token,
-            refresh_token=refresh_token
+        access_token=access_token,
+        refresh_token=refresh_token
     )
 
 
@@ -55,11 +62,11 @@ def create_refresh_token(user: UsersSchema) -> str:
 
 
 def get_current_token_payload(
-    token: str,
+        token: str,
 ) -> dict:
     try:
         payload = decode_jwt(
-            token=token,
+            token=token.encode(),
         )
     except InvalidTokenError as e:
         raise HTTPException(
@@ -72,28 +79,27 @@ def get_current_token_payload(
 async def get_user_by_token_sub(
         token: str,
         db: AsyncSession
-) -> dict:
+) -> UsersSchema:
     payload = get_current_token_payload(token)
     username: str = payload.get("sub")
-    valid_token = await verify_refresh_token(token, username, db)
+    user = await get_user(username, db)
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="inactive user",
+        )
+    return user
+
+
+async def get_current_auth_user_for_refresh(
+        token: str,
+        db: AsyncSession
+) -> UsersSchema:
+    user = await get_user_by_token_sub(token, db)
+    valid_token = await verify_refresh_token(token, user, db)
     if not valid_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="token invalid",
         )
-    return payload
-
-
-def get_current_auth_user_for_refresh(
-    token: str,
-    db: AsyncSession,
-) -> UsersSchema:
-    payload = await get_user_by_token_sub(token, db)
-    username: str = payload.get("sub")
-    user = await get_user(username, db)
-    if user.active:
-        return user
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail="inactive user",
-    )
+    return user

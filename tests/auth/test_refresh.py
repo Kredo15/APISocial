@@ -1,0 +1,29 @@
+import pytest
+from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from tests.auth.utils import (
+    create_test_refresh_token,
+    verify_access_token,
+    verify_refresh_token,
+    create_test_user
+)
+
+
+@pytest.mark.asyncio
+async def test_auth_refresh_jwt(async_client: AsyncClient,
+                                async_test_session: AsyncSession,
+                                user_credentials_data: dict
+                                ) -> None:
+    user = await create_test_user(user_credentials_data, async_test_session)
+    refresh_token = await create_test_refresh_token(user, async_test_session)
+    response = await async_client.post(
+        url="/auth/refresh",
+        json={"refresh_token": refresh_token}
+    )
+    assert response.status_code == 200
+    response_data = response.json()
+    verify_access_token(response_data['access_token'], user_credentials_data)
+    await verify_refresh_token(response_data['refresh_token'],
+                               user_credentials_data,
+                               async_test_session)

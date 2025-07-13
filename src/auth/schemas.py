@@ -1,11 +1,13 @@
 from datetime import datetime
 
+from uuid import UUID
 from pydantic import BaseModel, EmailStr
 
 
 class TokenAddSchema(BaseModel):
     token: str
     user_id: int
+    device_id: UUID
     expires_at: datetime
 
 
@@ -21,18 +23,14 @@ class TokenDataSchema(BaseModel):
     token_type: str = "Bearer"
 
 
-class RefreshTokenSchema(BaseModel):
-    refresh_token: str
-
-
 class UsersAddSchema(BaseModel):
-    email: EmailStr
+    email: EmailStr | None = None
     username: str
-    password: bytes
+    password: str
 
 
 class UsersSchema(UsersAddSchema):
-    id: int
+    id: UUID
     first_name: str | None
     last_name: str | None
     active: bool
@@ -40,13 +38,3 @@ class UsersSchema(UsersAddSchema):
     is_administrator: bool
     created_at: datetime
     last_login: datetime
-
-
-class UsernameAuthSchema(BaseModel):
-    username: str
-    password: str
-
-
-class EmailAuthSchema(BaseModel):
-    email: EmailStr
-    password: str
