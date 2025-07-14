@@ -9,7 +9,7 @@ from alembic import context
 
 from src.config.settings import settings
 from src.common.base_model import Base
-from src.auth.models import UsersOrm
+from src.auth.models import UsersOrm, TokenOrm
 from src.profile.models import ProfileOrm
 
 # this is the Alembic Config object, which provides

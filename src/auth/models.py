@@ -12,8 +12,8 @@ from src.profile.models import ProfileOrm
 class UsersOrm(Base):
     __tablename__ = "users"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        primary_key=True, default=uuid.uuid4
+    uid: Mapped[str] = mapped_column(
+        String, default=str(uuid.uuid4), primary_key=True
     )
     email: Mapped[EmailStr] = mapped_column(
         String, nullable=False, unique=True
@@ -41,10 +41,10 @@ class TokenOrm(Base):
 
     id: Mapped[intpk]
     token: Mapped[str] = mapped_column(unique=True, index=True)
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE")
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.uid", ondelete="CASCADE")
     )
-    device_id: Mapped[uuid.UUID]
+    device_id: Mapped[str]
     expires_at: Mapped[datetime]
     revoked: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[created_at]

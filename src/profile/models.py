@@ -11,8 +11,8 @@ class ProfileOrm(Base):
     __tablename__ = "profiles"
 
     id: Mapped[intpk]
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE")
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.uid", ondelete="CASCADE")
     )
     first_name: Mapped[str_256]
     last_name: Mapped[str_256]

@@ -23,6 +23,10 @@ class TokenDataSchema(BaseModel):
     token_type: str = "Bearer"
 
 
+class UpdateTokensIn(BaseModel):
+    refresh_token: str
+
+
 class UsersAddSchema(BaseModel):
     email: EmailStr | None = None
     username: str

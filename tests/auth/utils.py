@@ -42,21 +42,30 @@ async def create_test_user(user_data: dict,
 
 async def create_test_refresh_token(
         user: UsersSchema,
+        device_id: str,
         session: AsyncSession,
         private_key: str = settings.PRIVATE_KEY_PATH.read_text(),
         algorithm: str = settings.ALGORITHM,
-        expired=False,
-        revoked=False,
-):
+        expired: bool = False,
+        revoked: bool = False,
+) -> str:
+    now = datetime.utcnow()
     expire_delta = timedelta(days=-1) if expired else timedelta(days=30)
-    expires_at = datetime.utcnow() + expire_delta
+    expires_at = now + expire_delta
 
-    token_data = {"sub": user.username}
-    refresh_token = jwt.encode(token_data, private_key, algorithm=algorithm)
+    jwt_payload = {
+        "type": "refresh",
+        "sub": user.username,
+        'exp': expires_at,
+        'iat': now,
+        'jti': str(uuid.uuid4()),
+        'device_id': device_id
+    }
+    refresh_token = jwt.encode(jwt_payload, private_key, algorithm=algorithm)
     token = TokenOrm(
         token=refresh_token,
         user=user,
-        device_id=str(uuid.uuid4()),
+        device_id=device_id,
         expires_at=expires_at,
         revoked=revoked
     )
@@ -65,6 +74,30 @@ async def create_test_refresh_token(
         await session.commit()
 
     return refresh_token
+
+
+def create_test_access_token(
+        user: UsersSchema,
+        device_id: str,
+        private_key: str = settings.PRIVATE_KEY_PATH.read_text(),
+        algorithm: str = settings.ALGORITHM,
+        expired: bool = False,
+) -> str:
+    now = datetime.utcnow()
+    expire_delta = timedelta(minutes=-1) if expired else timedelta(minutes=30)
+    expires_at = now + expire_delta
+    jwt_payload = {
+        "type": "access",
+        "sub": user.username,
+        "username": user.username,
+        "email": user.email,
+        'exp': expires_at,
+        'iat': now,
+        'jti': str(uuid.uuid4()),
+        'device_id': device_id
+    }
+    access_token = jwt.encode(jwt_payload, private_key, algorithm=algorithm)
+    return access_token
 
 
 async def verify_user_db(user_credentials_data: dict,
@@ -86,12 +119,14 @@ def verify_access_token(token: str, user_credentials_data: dict) -> None:
     assert payload.get('email') == user_credentials_data.get('email')
 
 
-async def verify_refresh_token(token: str,
-                               username: dict,
-                               session: AsyncSession):
+async def verify_refresh_token(
+        token: str,
+        username: str,
+        session: AsyncSession
+) -> None:
     async with session:
         query = select(TokenOrm).options(
-           joinedload(TokenOrm.user)
+            joinedload(TokenOrm.user)
         ).filter(
             TokenOrm.token == token
         )

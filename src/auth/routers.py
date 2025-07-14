@@ -1,9 +1,10 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth.services import decode_jwt
 from src.auth.validation import validate_auth_user
 from src.database.db import get_async_session
 from src.auth.utils import (
@@ -11,10 +12,10 @@ from src.auth.utils import (
     get_current_auth_user_for_refresh,
 )
 from src.auth.crud import create_user, revoke_refresh_token
-from src.auth.schemas import TokenDataSchema, UsersAddSchema
+from src.auth.schemas import TokenDataSchema, UsersAddSchema, UpdateTokensIn
 
 oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="/auth/sign-in/",
+    tokenUrl="/auth/sign-in",
 )
 router = APIRouter(prefix='/auth', tags=['auth'])
 
@@ -32,18 +33,16 @@ async def login_for_access_token(
 @router.post(
     "/refresh",
     response_model=TokenDataSchema,
-    response_model_exclude_none=True,
     dependencies=[Depends(oauth2_scheme)]
 )
 async def auth_refresh_jwt(
-        refresh_token: str,
-        request: Request,
+        token: UpdateTokensIn,
         db: AsyncSession = Depends(get_async_session)
 ) -> TokenDataSchema:
-    user_token = await get_current_auth_user_for_refresh(refresh_token, db)
-    device_id = request.state.device_id
-    tokens = await create_tokens(user_token, db, device_id)
-    await revoke_refresh_token(refresh_token, db, device_id)
+    payload = decode_jwt(token.refresh_token.encode())
+    user_token = await get_current_auth_user_for_refresh(token.refresh_token, db)
+    tokens = await create_tokens(user_token, db, payload['device_id'])
+    await revoke_refresh_token(token.refresh_token, db, payload['device_id'])
     return tokens
 
 

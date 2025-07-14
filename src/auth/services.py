@@ -2,7 +2,9 @@ import uuid
 from datetime import datetime, timedelta
 
 import jwt
+from jwt import InvalidTokenError
 import bcrypt
+from fastapi import HTTPException, status
 
 from src.config.settings import settings
 
@@ -18,6 +20,7 @@ def get_device_id() -> str:
 
 def encode_jwt(
     payload: dict,
+    device_id: str,
     private_key: str = settings.PRIVATE_KEY_PATH.read_text(),
     algorithm: str = settings.ALGORITHM,
     expire_minutes: int = settings.ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -33,7 +36,7 @@ def encode_jwt(
         exp=expire,
         iat=now,
         jti=str(uuid.uuid4()),
-        device_id=get_device_id(),
+        device_id=device_id,
     )
     encoded = jwt.encode(
         to_encode,
@@ -48,17 +51,24 @@ def decode_jwt(
     public_key: str = settings.PUBLIC_KEY_PATH.read_text(),
     algorithm: str = settings.ALGORITHM,
 ) -> dict:
-    decoded = jwt.decode(
-        token,
-        public_key,
-        algorithms=[algorithm],
-    )
-    return decoded
+    try:
+        decoded = jwt.decode(
+            token,
+            public_key,
+            algorithms=[algorithm],
+        )
+        return decoded
+    except InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="invalid token error",
+        )
 
 
 def create_jwt(
     token_type: str,
     token_data: dict,
+    device_id: str,
     expire_minutes: int = settings.ACCESS_TOKEN_EXPIRE_MINUTES,
     expire_timedelta: timedelta | None = None,
 ) -> str:
@@ -66,6 +76,7 @@ def create_jwt(
     jwt_payload.update(token_data)
     return encode_jwt(
         payload=jwt_payload,
+        device_id=device_id,
         expire_minutes=expire_minutes,
         expire_timedelta=expire_timedelta,
     )

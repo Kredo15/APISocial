@@ -27,8 +27,8 @@ async def create_tokens(user: UsersSchema,
                         db: AsyncSession,
                         device_id: str = get_device_id()
                         ) -> TokenDataSchema:
-    access_token = create_access_token(user)
-    refresh_token = create_refresh_token(user)
+    access_token = create_access_token(user, device_id)
+    refresh_token = create_refresh_token(user, device_id)
     await add_refresh_token(refresh_token, user, device_id, db)
     await update_last_login(user, db)
     return TokenDataSchema(
@@ -37,7 +37,7 @@ async def create_tokens(user: UsersSchema,
     )
 
 
-def create_access_token(user: UsersSchema) -> str:
+def create_access_token(user: UsersSchema, device_id: str) -> str:
     jwt_payload = {
         "sub": user.username,
         "username": user.username,
@@ -46,17 +46,19 @@ def create_access_token(user: UsersSchema) -> str:
     return create_jwt(
         token_type=ACCESS_TOKEN_TYPE,
         token_data=jwt_payload,
+        device_id=device_id,
         expire_minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
     )
 
 
-def create_refresh_token(user: UsersSchema) -> str:
+def create_refresh_token(user: UsersSchema, device_id: str) -> str:
     jwt_payload = {
         "sub": user.username
     }
     return create_jwt(
         token_type=REFRESH_TOKEN_TYPE,
         token_data=jwt_payload,
+        device_id=device_id,
         expire_timedelta=timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
     )
 
@@ -68,10 +70,10 @@ def get_current_token_payload(
         payload = decode_jwt(
             token=token.encode(),
         )
-    except InvalidTokenError as e:
+    except InvalidTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"invalid token error: {e}",
+            detail=f"invalid token error",
         )
     return payload
 
@@ -100,6 +102,6 @@ async def get_current_auth_user_for_refresh(
     if not valid_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="token invalid",
+            detail="invalid token error",
         )
     return user
