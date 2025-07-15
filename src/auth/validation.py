@@ -13,10 +13,13 @@ def validate_password(
         password: str,
         hashed_password: str,
 ) -> bool:
-    return bcrypt.checkpw(
-        password=password.encode('utf8'),
-        hashed_password=hashed_password.encode('utf8'),
-    )
+    try:
+        return bcrypt.checkpw(
+            password=password.encode('utf8'),
+            hashed_password=hashed_password.encode('utf8'),
+        )
+    except ValueError:
+        return False
 
 
 def valid_email(email: str) -> bool:

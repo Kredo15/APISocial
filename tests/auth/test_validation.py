@@ -1,0 +1,47 @@
+from typing import Callable
+
+import pytest
+
+from src.auth.services import get_hash_password
+from tests.auth.utils import faker
+from src.auth.validation import validate_password
+
+
+def _get_correct_password_and_hash() -> dict[str, str]:
+    password = faker.password()
+    return {
+        "password": password,
+        "hashed_password": get_hash_password(password)
+    }
+
+
+def _get_password_and_hash_without_salt() -> dict[str, str]:
+    password = faker.password()
+    return {
+        "password": password,
+        "hashed_password": password
+    }
+
+
+def _get_different_password_and_hash() -> dict[str, str]:
+    return {
+        "password": faker.password(),
+        "hashed_password": get_hash_password(faker.password())
+    }
+
+
+@pytest.mark.parametrize(
+    "func_get_password_and_hash, code",
+    [
+        (_get_correct_password_and_hash, True),
+        (_get_password_and_hash_without_salt, False),
+        (_get_different_password_and_hash, False),
+    ]
+)
+def test_validate_password(
+        func_get_password_and_hash: Callable,
+        code: bool
+):
+    data = func_get_password_and_hash()
+    valid = validate_password(data['password'], data['hashed_password'])
+    assert valid == code
