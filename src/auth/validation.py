@@ -5,12 +5,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from email_validator import validate_email, EmailNotValidError
 
 from src.auth.crud import get_user, get_user_for_email, get_token
-from src.auth.schemas import UsersSchema
+from src.auth.schemas import UsersSchema, UsersAddSchema
+from src.auth.services import TOKEN_TYPE_FIELD
 
 
 def validate_password(
-    password: str,
-    hashed_password: str,
+        password: str,
+        hashed_password: str,
 ) -> bool:
     return bcrypt.checkpw(
         password=password.encode('utf8'),
@@ -27,8 +28,8 @@ def valid_email(email: str) -> bool:
 
 
 async def validate_auth_user(
-    form_data: OAuth2PasswordRequestForm,
-    db: AsyncSession
+        form_data: OAuth2PasswordRequestForm,
+        db: AsyncSession
 ) -> UsersSchema:
     unauthed_exc = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -42,8 +43,8 @@ async def validate_auth_user(
     if not user:
         raise unauthed_exc
     if not validate_password(
-        password=form_data.password,
-        hashed_password=user.password,
+            password=form_data.password,
+            hashed_password=user.password,
     ):
         raise unauthed_exc
 
@@ -63,3 +64,29 @@ async def verify_refresh_token(
 ) -> bool:
     db_token = await get_token(token, user, db)
     return db_token is not None
+
+
+def validate_token_type(
+        payload: dict,
+        token_type: str,
+) -> bool:
+    current_token_type = payload.get(TOKEN_TYPE_FIELD)
+    if current_token_type == token_type:
+        return True
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="invalid token type",
+    )
+
+
+async def verify_user(
+        user_data: UsersAddSchema,
+        db: AsyncSession
+) -> bool:
+    user_db = await get_user(user_data.username, db)
+    if user_db:
+        raise HTTPException(
+            status_code=400,
+            detail="Username already registered"
+        )
+    return True

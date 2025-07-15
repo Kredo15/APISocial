@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from jwt import InvalidTokenError
 
 from src.auth.validation import (
-    verify_refresh_token
+    verify_refresh_token, validate_token_type
 )
 from src.config.settings import settings
 from src.auth.schemas import UsersSchema, TokenDataSchema
@@ -80,9 +80,11 @@ def get_current_token_payload(
 
 async def get_user_by_token_sub(
         token: str,
+        token_type: str,
         db: AsyncSession
 ) -> UsersSchema:
     payload = get_current_token_payload(token)
+    validate_token_type(payload, token_type)
     username: str = payload.get("sub")
     user = await get_user(username, db)
     if not user.is_active:
@@ -97,7 +99,7 @@ async def get_current_auth_user_for_refresh(
         token: str,
         db: AsyncSession
 ) -> UsersSchema:
-    user = await get_user_by_token_sub(token, db)
+    user = await get_user_by_token_sub(token, REFRESH_TOKEN_TYPE, db)
     valid_token = await verify_refresh_token(token, user, db)
     if not valid_token:
         raise HTTPException(

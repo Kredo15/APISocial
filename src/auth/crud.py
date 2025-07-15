@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import Annotated
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from sqlalchemy import select, insert
 from pydantic import EmailStr
 
@@ -30,9 +30,6 @@ async def get_user_for_email(email: EmailStr,
 async def create_user(user_data: UsersAddSchema,
                       db: Annotated[AsyncSession, Depends(get_async_session)]
                       ) -> UsersSchema:
-    verify_user_db = await get_user(user_data.username, db)
-    if verify_user_db:
-        raise HTTPException(status_code=400, detail="Username already registered")
     hashed_password = get_hash_password(user_data.password)
     data = {
         "email": user_data.email,

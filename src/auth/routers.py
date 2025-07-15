@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.services import decode_jwt
-from src.auth.validation import validate_auth_user
+from src.auth.validation import validate_auth_user, verify_user
 from src.database.db import get_async_session
 from src.auth.utils import (
     create_tokens,
@@ -50,6 +50,7 @@ async def auth_refresh_jwt(
 async def signup(user: UsersAddSchema,
                  db: AsyncSession = Depends(get_async_session),
                  ) -> TokenDataSchema:
+    await verify_user(user, db)
     data_user = await create_user(user, db)
     tokens = await create_tokens(data_user, db)
     return tokens
