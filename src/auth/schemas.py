@@ -42,3 +42,7 @@ class UsersSchema(UsersAddSchema):
     is_administrator: bool
     created_at: datetime
     last_login: datetime
+
+
+class SuccessOut(BaseModel):
+    success: bool = True

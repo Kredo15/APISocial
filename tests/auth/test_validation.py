@@ -2,9 +2,12 @@ from typing import Callable
 
 import pytest
 
-from src.auth.services import get_hash_password
 from tests.auth.utils import faker
-from src.auth.validation import validate_password
+from src.auth.services import get_hash_password
+from src.auth.validation import (
+    validate_password,
+    valid_email
+)
 
 
 def _get_correct_password_and_hash() -> dict[str, str]:
@@ -43,5 +46,17 @@ def test_validate_password(
         code: bool
 ):
     data = func_get_password_and_hash()
-    valid = validate_password(data['password'], data['hashed_password'])
-    assert valid == code
+    result = validate_password(data['password'], data['hashed_password'])
+    assert result == code
+
+
+@pytest.mark.parametrize(
+    "email, code",
+    [
+        (faker.email(), True),
+        ('bad_email.com', False)
+    ]
+)
+def test_valid_email(email: str, code: bool):
+    result = valid_email(email)
+    assert result == code

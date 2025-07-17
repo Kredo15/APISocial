@@ -12,7 +12,7 @@ from src.auth.schemas import UsersSchema, TokenDataSchema
 from src.auth.services import (
     create_jwt,
     decode_jwt,
-    get_device_id,
+    get_jti_or_device_id,
     ACCESS_TOKEN_TYPE,
     REFRESH_TOKEN_TYPE
 )
@@ -23,13 +23,15 @@ from src.auth.crud import (
 )
 
 
-async def create_tokens(user: UsersSchema,
-                        db: AsyncSession,
-                        device_id: str = get_device_id()
-                        ) -> TokenDataSchema:
-    access_token = create_access_token(user, device_id)
-    refresh_token = create_refresh_token(user, device_id)
-    await add_refresh_token(refresh_token, user, device_id, db)
+async def create_tokens(
+        user: UsersSchema,
+        db: AsyncSession,
+        jti: str = get_jti_or_device_id(),
+        device_id: str = get_jti_or_device_id()
+) -> TokenDataSchema:
+    access_token = create_access_token(user, jti, device_id)
+    refresh_token = create_refresh_token(user, jti, device_id)
+    await add_refresh_token(jti, refresh_token, user, device_id, db)
     await update_last_login(user, db)
     return TokenDataSchema(
         access_token=access_token,
@@ -37,28 +39,30 @@ async def create_tokens(user: UsersSchema,
     )
 
 
-def create_access_token(user: UsersSchema, device_id: str) -> str:
+def create_access_token(user: UsersSchema, jti: str, device_id: str) -> str:
     jwt_payload = {
+        "jti": jti,
         "sub": user.username,
         "username": user.username,
         "email": user.email,
+        "device_id": device_id
     }
     return create_jwt(
         token_type=ACCESS_TOKEN_TYPE,
         token_data=jwt_payload,
-        device_id=device_id,
         expire_minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
     )
 
 
-def create_refresh_token(user: UsersSchema, device_id: str) -> str:
+def create_refresh_token(user: UsersSchema, jti: str, device_id: str) -> str:
     jwt_payload = {
-        "sub": user.username
+        "jti": jti,
+        "sub": user.username,
+        "device_id": device_id
     }
     return create_jwt(
         token_type=REFRESH_TOKEN_TYPE,
         token_data=jwt_payload,
-        device_id=device_id,
         expire_timedelta=timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
     )
 

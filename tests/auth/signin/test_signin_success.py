@@ -14,7 +14,7 @@ from tests.auth.utils import (
 @pytest.mark.parametrize(
         "login_username_or_email", ["username", "email"]
 )
-async def test_login_for_access_token(
+async def test_login(
         login_username_or_email: str,
         async_client: AsyncClient,
         async_test_session: AsyncSession,

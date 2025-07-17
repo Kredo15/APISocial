@@ -15,5 +15,8 @@ def user_credentials_data() -> dict[str, str]:
 
 
 @pytest.fixture
-def device_id() -> str:
-    return str(uuid.uuid4())
+def data_for_token() -> dict[str, str]:
+    return {
+        "jti": str(uuid.uuid4()),
+        "device_id": str(uuid.uuid4())
+    }

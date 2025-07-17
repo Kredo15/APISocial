@@ -15,8 +15,8 @@ from src.auth.services import decode_jwt, get_hash_password
 faker = Faker()
 
 
-def get_user_data(login_username_or_email, user_credentials_data) -> dict:
-    if login_username_or_email == "username":
+def get_user_data(username_or_email, user_credentials_data) -> dict:
+    if username_or_email == "username":
         username = user_credentials_data.get("username")
     else:
         username = user_credentials_data.get("email")
@@ -26,12 +26,16 @@ def get_user_data(login_username_or_email, user_credentials_data) -> dict:
     }
 
 
-async def create_test_user(user_data: dict,
-                           async_session: AsyncSession):
+async def create_test_user(
+        user_data: dict,
+        async_session: AsyncSession,
+        is_active: bool = True
+):
     user = UsersOrm(
         username=user_data['username'],
         email=user_data['email'],
         password=get_hash_password(user_data['password']),
+        is_active=is_active
     )
     async with async_session:
         async_session.add(user)
@@ -42,7 +46,7 @@ async def create_test_user(user_data: dict,
 
 async def create_test_refresh_token(
         user: UsersSchema,
-        device_id: str,
+        data_for_token: dict,
         session: AsyncSession,
         private_key: str = settings.PRIVATE_KEY_PATH.read_text(),
         algorithm: str = settings.ALGORITHM,
@@ -58,14 +62,15 @@ async def create_test_refresh_token(
         "sub": user.username,
         'exp': expires_at,
         'iat': now,
-        'jti': str(uuid.uuid4()),
-        'device_id': device_id
+        'jti': data_for_token['jti'],
+        'device_id': data_for_token['device_id']
     }
     refresh_token = jwt.encode(jwt_payload, private_key, algorithm=algorithm)
     token = TokenOrm(
+        jti=data_for_token['jti'],
         token=refresh_token,
         user=user,
-        device_id=device_id,
+        device_id=data_for_token['device_id'],
         expires_at=expires_at,
         revoked=revoked
     )
@@ -119,11 +124,10 @@ def verify_access_token(token: str, user_credentials_data: dict) -> None:
     assert payload.get('email') == user_credentials_data.get('email')
 
 
-async def verify_refresh_token(
-        token: str,
-        username: str,
-        session: AsyncSession
-) -> None:
+async def get_refresh_token(
+    token: str,
+    session: AsyncSession
+) -> TokenOrm:
     async with session:
         query = select(TokenOrm).options(
             joinedload(TokenOrm.user)
@@ -132,6 +136,26 @@ async def verify_refresh_token(
         )
         result = await session.execute(query)
         token_db = result.unique().scalars().first()
-        username_db = token_db.user.username
-    assert token_db is not None
+    return token_db
+
+
+async def verify_refresh_token(
+        token: str,
+        username: str,
+        session: AsyncSession
+) -> None:
+    token = await get_refresh_token(token, session)
+    username_db = token.user.username
+    assert token is not None
     assert username_db == username
+
+
+async def verify_refresh_token_revoke(
+    token: str,
+    session: AsyncSession
+) -> bool:
+    token = await get_refresh_token(token, session)
+    print(token)
+    if token.revoked:
+        return True
+    return False

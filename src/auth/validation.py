@@ -50,13 +50,11 @@ async def validate_auth_user(
             hashed_password=user.password,
     ):
         raise unauthed_exc
-
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="user inactive",
         )
-
     return user
 
 

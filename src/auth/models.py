@@ -5,7 +5,7 @@ from pydantic import EmailStr
 from sqlalchemy import String, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.common.base_model import Base, intpk, str_256, created_at
+from src.common.base_model import Base, str_256, created_at
 from src.profile.models import ProfileOrm
 
 
@@ -39,7 +39,7 @@ class UsersOrm(Base):
 class TokenOrm(Base):
     __tablename__ = "tokens"
 
-    id: Mapped[intpk]
+    jti: Mapped[str] = mapped_column(primary_key=True)
     token: Mapped[str] = mapped_column(unique=True, index=True)
     user_id: Mapped[str] = mapped_column(
         ForeignKey("users.uid", ondelete="CASCADE")

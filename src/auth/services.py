@@ -14,13 +14,12 @@ ACCESS_TOKEN_TYPE = "access"
 REFRESH_TOKEN_TYPE = "refresh"
 
 
-def get_device_id() -> str:
+def get_jti_or_device_id() -> str:
     return str(uuid.uuid4())
 
 
 def encode_jwt(
     payload: dict,
-    device_id: str,
     private_key: str = settings.PRIVATE_KEY_PATH.read_text(),
     algorithm: str = settings.ALGORITHM,
     expire_minutes: int = settings.ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -35,8 +34,7 @@ def encode_jwt(
     to_encode.update(
         exp=expire,
         iat=now,
-        jti=str(uuid.uuid4()),
-        device_id=device_id,
+        jti=str(uuid.uuid4())
     )
     encoded = jwt.encode(
         to_encode,
@@ -68,7 +66,6 @@ def decode_jwt(
 def create_jwt(
     token_type: str,
     token_data: dict,
-    device_id: str,
     expire_minutes: int = settings.ACCESS_TOKEN_EXPIRE_MINUTES,
     expire_timedelta: timedelta | None = None,
 ) -> str:
@@ -76,7 +73,6 @@ def create_jwt(
     jwt_payload.update(token_data)
     return encode_jwt(
         payload=jwt_payload,
-        device_id=device_id,
         expire_minutes=expire_minutes,
         expire_timedelta=expire_timedelta,
     )
@@ -87,3 +83,7 @@ def get_hash_password(
 ) -> str:
     pwhash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     return pwhash.decode('utf-8')
+
+
+def get_token_with_header(authorization):
+    return authorization.replace('Bearer ', '')

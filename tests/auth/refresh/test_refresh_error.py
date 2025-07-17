@@ -20,15 +20,15 @@ async def test_auth_refresh_jwt_expired_revoke(
         async_client: AsyncClient,
         async_test_session: AsyncSession,
         user_credentials_data: dict,
-        device_id: str,
+        data_for_token: dict,
         expired: bool,
         revoked: bool
 ) -> None:
     user = await create_test_user(user_credentials_data, async_test_session)
-    access_token = create_test_access_token(user, device_id)
+    access_token = create_test_access_token(user, data_for_token['device_id'])
     refresh_token = await create_test_refresh_token(
         user=user,
-        device_id=device_id,
+        data_for_token=data_for_token,
         session=async_test_session,
         expired=expired,
         revoked=revoked
@@ -44,14 +44,14 @@ async def test_auth_refresh_jwt_expired_revoke(
 
 
 @pytest.mark.asyncio
-async def test_auth_refresh_jwt_type_error(
+async def test_refresh_type_error(
         async_client: AsyncClient,
         async_test_session: AsyncSession,
         user_credentials_data: dict,
-        device_id: str
+        data_for_token: dict
 ):
     user = await create_test_user(user_credentials_data, async_test_session)
-    access_token = create_test_access_token(user, device_id)
+    access_token = create_test_access_token(user, data_for_token['device_id'])
     response = await async_client.post(
         url="/auth/refresh",
         headers={'Authorization': f'Bearer {access_token}'},
@@ -63,14 +63,14 @@ async def test_auth_refresh_jwt_type_error(
 
 
 @pytest.mark.asyncio
-async def test_auth_refresh_jwt_invalid_token_error(
+async def test_refresh_invalid_token_error(
         async_client: AsyncClient,
         async_test_session: AsyncSession,
         user_credentials_data: dict,
-        device_id: str
+        data_for_token: dict
 ):
     user = await create_test_user(user_credentials_data, async_test_session)
-    access_token = create_test_access_token(user, device_id)
+    access_token = create_test_access_token(user, data_for_token['device_id'])
     response = await async_client.post(
         url="/auth/refresh",
         headers={'Authorization': f'Bearer {access_token}'},
