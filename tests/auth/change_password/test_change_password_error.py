@@ -2,16 +2,15 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from tests.auth.utils import faker
 from tests.auth.utils import (
-    create_test_refresh_token,
     create_test_access_token,
-    create_test_user,
-    verify_refresh_token_revoke
+    create_test_user
 )
 
 
 @pytest.mark.asyncio
-async def test_logout__success(
+async def test_user_change_password(
         async_client: AsyncClient,
         async_test_session: AsyncSession,
         user_credentials_data: dict,
@@ -19,12 +18,15 @@ async def test_logout__success(
 ) -> None:
     user = await create_test_user(user_credentials_data, async_test_session)
     access_token = create_test_access_token(user, data_for_token['device_id'])
-    refresh_token = await create_test_refresh_token(user, data_for_token, async_test_session)
+    new_password = faker.password()
     response = await async_client.patch(
-        url="/auth/sign-out",
-        headers={'Authorization': f'Bearer {access_token}'}
+        url="/auth/change-password",
+        headers={'Authorization': f'Bearer {access_token}'},
+        json={
+            "old_password": faker.password(),
+            "new_password": new_password
+        }
     )
-    assert response.status_code == 200
+    assert response.status_code == 401
     response_data = response.json()
-    assert response_data['success']
-    assert await verify_refresh_token_revoke(refresh_token, async_test_session)
+    assert response_data['detail'] == "Old password provided doesn't match, please try again"

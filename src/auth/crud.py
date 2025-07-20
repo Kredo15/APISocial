@@ -63,7 +63,7 @@ async def user_change_password_db(
         db: Annotated[AsyncSession, Depends(get_async_session)]
 ) -> None:
     async with db:
-        user.password = new_password
+        user.password = get_hash_password(new_password)
         await db.commit()
 
 

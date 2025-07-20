@@ -4,10 +4,10 @@ from datetime import timedelta
 
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from jwt import InvalidTokenError
 
 from src.auth.validation import (
-    verify_refresh_token, validate_token_type
+    verify_refresh_token,
+    validate_token_type
 )
 from src.common.message import LogMessages
 from src.config.settings import settings

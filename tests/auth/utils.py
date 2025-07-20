@@ -11,11 +11,14 @@ from src.config.settings import settings
 from src.auth.models import TokenOrm, UsersOrm
 from src.auth.schemas import UsersSchema
 from src.auth.services import decode_jwt, get_hash_password
+from src.auth.validation import validate_password
 
 faker = Faker()
 
 
-def get_user_data(username_or_email, user_credentials_data) -> dict:
+def get_user_data(
+        username_or_email: str,
+        user_credentials_data: dict) -> dict:
     if username_or_email == "username":
         username = user_credentials_data.get("username")
     else:
@@ -105,8 +108,10 @@ def create_test_access_token(
     return access_token
 
 
-async def verify_user_db(user_credentials_data: dict,
-                         session: AsyncSession) -> bool:
+async def verify_user_db(
+        user_credentials_data: dict,
+        session: AsyncSession
+) -> bool:
     async with session:
         user = await session.execute(select(UsersOrm).filter(
             UsersOrm.email == user_credentials_data.get('email'),
@@ -125,8 +130,8 @@ def verify_access_token(token: str, user_credentials_data: dict) -> None:
 
 
 async def get_refresh_token(
-    token: str,
-    session: AsyncSession
+        token: str,
+        session: AsyncSession
 ) -> TokenOrm:
     async with session:
         query = select(TokenOrm).options(
@@ -151,11 +156,31 @@ async def verify_refresh_token(
 
 
 async def verify_refresh_token_revoke(
-    token: str,
-    session: AsyncSession
+        token: str,
+        session: AsyncSession
 ) -> bool:
     token = await get_refresh_token(token, session)
-    print(token)
     if token.revoked:
         return True
     return False
+
+
+async def get_user(
+        user_email: str,
+        session: AsyncSession
+) -> UsersSchema:
+    async with session:
+        user = await session.execute(
+            select(UsersOrm)
+            .where(UsersOrm.email == user_email)
+        )
+    return user.scalars().first()
+
+
+async def verify_change_password(
+        user_email: str,
+        new_password: str,
+        session: AsyncSession
+) -> bool:
+    user = await get_user(user_email, session)
+    return validate_password(new_password, user.password)

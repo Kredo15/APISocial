@@ -59,7 +59,7 @@ async def signup(
 
 
 @router.patch(
-    "/sign_out",
+    "/sign-out",
     dependencies=[Depends(oauth2_scheme)]
 )
 async def logout(
@@ -84,9 +84,10 @@ async def user_change_password(
 
 
 @router.patch(
-    "/reset-password"
+    "/reset-password",
+    dependencies=[Depends(oauth2_scheme)]
 )
-async def user_password_reset(
+async def user_reset_password(
         request: Request,
         user_reset_password_body: ResetPasswordSchema,
         db: AsyncSession = Depends(get_async_session)
