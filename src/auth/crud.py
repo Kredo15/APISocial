@@ -67,16 +67,6 @@ async def user_change_password_db(
         await db.commit()
 
 
-async def user_reset_password(
-        email: str,
-        new_password: str,
-        db: Annotated[AsyncSession, Depends(get_async_session)]
-) -> None:
-    user = await get_user_for_email(email, db)
-    user.password = get_hash_password(new_password)
-    await db.commit()
-
-
 async def add_refresh_token(
         jti: str,
         refresh_token: str,

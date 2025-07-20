@@ -25,7 +25,8 @@ from src.auth.schemas import (
     TokenDataSchema,
     UsersAddSchema,
     UpdateTokensIn,
-    ChangePasswordSchema
+    ChangePasswordSchema,
+    ResetPasswordSchema
 )
 from src.common.message import LogMessages
 
@@ -102,4 +103,21 @@ async def change_password(
     )
     logger.info(
         LogMessages.USER_CHANGE_PASSWORD.format(user_id=user.uid)
+    )
+
+
+async def reset_password(
+        request: Request,
+        user_reset_password_body: ResetPasswordSchema,
+        db: AsyncSession
+) -> None:
+    payload = get_payload_with_header(request.headers['authorization'])
+    user = await get_user_for_email(payload.get('email'), db)
+    await user_change_password_db(
+        user=user,
+        new_password=user_reset_password_body.new_password,
+        db=db
+    )
+    logger.info(
+        LogMessages.USER_RESET_PASSWORD.format(user_id=user.uid)
     )

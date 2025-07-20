@@ -8,6 +8,7 @@ class LogMessages:
     USER_LOGGED_OUT = "User logged out successfully: {username}"
     USER_SUCCESS_TOKENS = "User created tokens: {user_id}"
     USER_CHANGE_PASSWORD = "User change password: {user_id}"
+    USER_RESET_PASSWORD = "User reset password: {user_id}"
 
     USER_ERROR_PASSWORD = "User invalid password: {user_id}"
     USER_ERROR_USERNAME = "invalid username: {username}"

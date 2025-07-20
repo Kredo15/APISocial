@@ -9,7 +9,8 @@ from src.auth.helper import (
     auth_refresh_jwt,
     register_user,
     logout_user,
-    change_password
+    change_password,
+    reset_password
 )
 from src.database.db import get_async_session
 from src.auth.schemas import (
@@ -17,7 +18,8 @@ from src.auth.schemas import (
     UsersAddSchema,
     UpdateTokensIn,
     SuccessOut,
-    ChangePasswordSchema
+    ChangePasswordSchema,
+    ResetPasswordSchema
 )
 
 oauth2_scheme = OAuth2PasswordBearer(
@@ -78,4 +80,16 @@ async def user_change_password(
         db: AsyncSession = Depends(get_async_session)
 ) -> SuccessOut:
     await change_password(request, user_change_password_body, db)
+    return SuccessOut()
+
+
+@router.patch(
+    "/reset-password"
+)
+async def user_password_reset(
+        request: Request,
+        user_reset_password_body: ResetPasswordSchema,
+        db: AsyncSession = Depends(get_async_session)
+) -> SuccessOut:
+    await reset_password(request, user_reset_password_body, db)
     return SuccessOut()

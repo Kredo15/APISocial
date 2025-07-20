@@ -49,5 +49,9 @@ class ChangePasswordSchema(BaseModel):
     new_password: str
 
 
+class ResetPasswordSchema(BaseModel):
+    new_password: str
+
+
 class SuccessOut(BaseModel):
     success: bool = True
