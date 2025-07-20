@@ -1,4 +1,6 @@
+import logging
 from datetime import timedelta
+
 
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,6 +9,7 @@ from jwt import InvalidTokenError
 from src.auth.validation import (
     verify_refresh_token, validate_token_type
 )
+from src.common.message import LogMessages
 from src.config.settings import settings
 from src.auth.schemas import UsersSchema, TokenDataSchema
 from src.auth.services import (
@@ -21,6 +24,8 @@ from src.auth.crud import (
     add_refresh_token,
     update_last_login
 )
+
+logger = logging.getLogger(__name__)
 
 
 async def create_tokens(
@@ -70,15 +75,9 @@ def create_refresh_token(user: UsersSchema, jti: str, device_id: str) -> str:
 def get_current_token_payload(
         token: str,
 ) -> dict:
-    try:
-        payload = decode_jwt(
-            token=token.encode(),
-        )
-    except InvalidTokenError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"invalid token error",
-        )
+    payload = decode_jwt(
+        token=token.encode(),
+    )
     return payload
 
 
@@ -92,6 +91,7 @@ async def get_user_by_token_sub(
     username: str = payload.get("sub")
     user = await get_user(username, db)
     if not user.is_active:
+        logger.error(LogMessages.USER_INACTIVE.format(user_id=user.uid))
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="inactive user",
@@ -106,6 +106,7 @@ async def get_current_auth_user_for_refresh(
     user = await get_user_by_token_sub(token, REFRESH_TOKEN_TYPE, db)
     valid_token = await verify_refresh_token(token, user, db)
     if not valid_token:
+        logger.error(LogMessages.JWT_INACTIVE.format(user_id=user.uid))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="invalid token error",

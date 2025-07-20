@@ -7,7 +7,11 @@ from sqlalchemy import select, insert
 from pydantic import EmailStr
 
 from src.database.db import get_async_session
-from src.auth.schemas import UsersAddSchema, UsersSchema, TokenSchema
+from src.auth.schemas import (
+    UsersAddSchema,
+    UsersSchema,
+    TokenSchema
+)
 from src.auth.models import UsersOrm, TokenOrm
 from src.auth.services import get_hash_password
 from src.config.settings import settings
@@ -51,6 +55,26 @@ async def update_last_login(
     async with db:
         user.last_login = now
         await db.commit()
+
+
+async def user_change_password_db(
+        user: UsersSchema,
+        new_password: str,
+        db: Annotated[AsyncSession, Depends(get_async_session)]
+) -> None:
+    async with db:
+        user.password = new_password
+        await db.commit()
+
+
+async def user_reset_password(
+        email: str,
+        new_password: str,
+        db: Annotated[AsyncSession, Depends(get_async_session)]
+) -> None:
+    user = await get_user_for_email(email, db)
+    user.password = get_hash_password(new_password)
+    await db.commit()
 
 
 async def add_refresh_token(

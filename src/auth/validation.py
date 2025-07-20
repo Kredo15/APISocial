@@ -1,3 +1,5 @@
+import logging
+
 import bcrypt
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
@@ -7,6 +9,9 @@ from email_validator import validate_email, EmailNotValidError
 from src.auth.crud import get_user, get_user_for_email, get_token
 from src.auth.schemas import UsersSchema, UsersAddSchema
 from src.auth.services import TOKEN_TYPE_FIELD
+from src.common.message import LogMessages
+
+logger = logging.getLogger(__name__)
 
 
 def validate_password(
@@ -44,13 +49,16 @@ async def validate_auth_user(
     else:
         user = await get_user(username, db)
     if not user:
+        logger.error(LogMessages.USER_ERROR_USERNAME.format(username=username))
         raise unauthed_exc
     if not validate_password(
             password=form_data.password,
             hashed_password=user.password,
     ):
+        logger.error(LogMessages.USER_ERROR_PASSWORD.format(user_id=user.uid))
         raise unauthed_exc
     if not user.is_active:
+        logger.error(LogMessages.USER_INACTIVE.format(user_id=user.uid))
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="user inactive",
@@ -74,6 +82,7 @@ def validate_token_type(
     current_token_type = payload.get(TOKEN_TYPE_FIELD)
     if current_token_type == token_type:
         return True
+    logger.error(LogMessages.JWT_ERROR_TYPE)
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="invalid token type",
@@ -86,6 +95,7 @@ async def verify_user(
 ) -> bool:
     user_db = await get_user(user_data.username, db)
     if user_db:
+        logger.error(LogMessages.USER_DUPLICATE)
         raise HTTPException(
             status_code=400,
             detail="Username already registered"

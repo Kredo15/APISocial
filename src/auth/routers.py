@@ -8,14 +8,16 @@ from src.auth.helper import (
     login_for_access_token,
     auth_refresh_jwt,
     register_user,
-    logout_user
+    logout_user,
+    change_password
 )
 from src.database.db import get_async_session
 from src.auth.schemas import (
     TokenDataSchema,
     UsersAddSchema,
     UpdateTokensIn,
-    SuccessOut
+    SuccessOut,
+    ChangePasswordSchema
 )
 
 oauth2_scheme = OAuth2PasswordBearer(
@@ -54,8 +56,8 @@ async def signup(
     return data
 
 
-@router.post(
-    "/logout",
+@router.patch(
+    "/sign_out",
     dependencies=[Depends(oauth2_scheme)]
 )
 async def logout(
@@ -63,4 +65,17 @@ async def logout(
     db: AsyncSession = Depends(get_async_session)
 ) -> SuccessOut:
     await logout_user(request, db)
+    return SuccessOut()
+
+
+@router.patch(
+    "/change-password",
+    dependencies=[Depends(oauth2_scheme)]
+)
+async def user_change_password(
+        request: Request,
+        user_change_password_body: ChangePasswordSchema,
+        db: AsyncSession = Depends(get_async_session)
+) -> SuccessOut:
+    await change_password(request, user_change_password_body, db)
     return SuccessOut()

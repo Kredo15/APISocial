@@ -34,7 +34,7 @@ class UsersAddSchema(BaseModel):
 
 
 class UsersSchema(UsersAddSchema):
-    id: UUID
+    uid: UUID
     first_name: str | None
     last_name: str | None
     active: bool
@@ -42,6 +42,11 @@ class UsersSchema(UsersAddSchema):
     is_administrator: bool
     created_at: datetime
     last_login: datetime
+
+
+class ChangePasswordSchema(BaseModel):
+    old_password: str
+    new_password: str
 
 
 class SuccessOut(BaseModel):

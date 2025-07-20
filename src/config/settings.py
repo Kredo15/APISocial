@@ -7,6 +7,8 @@ BASE_DIR = Path(__file__).parent.parent.parent
 class Settings(BaseSettings):
     MODE: str
 
+    CORS_ORIGINS: list
+
     PRIVATE_KEY_PATH: Path = BASE_DIR / "src" / "certs" / "jwt-private.pem"
     PUBLIC_KEY_PATH: Path = BASE_DIR / "src" / "certs" / "jwt-public.pem"
     ALGORITHM: str

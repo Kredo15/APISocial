@@ -1,3 +1,4 @@
+import logging
 import uuid
 from datetime import datetime, timedelta
 
@@ -6,7 +7,10 @@ from jwt import InvalidTokenError
 import bcrypt
 from fastapi import HTTPException, status
 
+from src.common.message import LogMessages
 from src.config.settings import settings
+
+logger = logging.getLogger(__name__)
 
 
 TOKEN_TYPE_FIELD = "type"
@@ -57,6 +61,7 @@ def decode_jwt(
         )
         return decoded
     except InvalidTokenError:
+        logger.error(LogMessages.JWT_DECODE_INVALID)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="invalid token error",
@@ -85,5 +90,7 @@ def get_hash_password(
     return pwhash.decode('utf-8')
 
 
-def get_token_with_header(authorization):
-    return authorization.replace('Bearer ', '')
+def get_payload_with_header(authorization) -> dict:
+    token = authorization.replace('Bearer ', '')
+    payload = decode_jwt(token.encode())
+    return payload
