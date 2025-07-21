@@ -21,7 +21,7 @@ async def test_logout__success(
     access_token = create_test_access_token(user, data_for_token['device_id'])
     refresh_token = await create_test_refresh_token(user, data_for_token, async_test_session)
     response = await async_client.patch(
-        url="/auth/sign-out",
+        url="/user/sign-out",
         headers={'Authorization': f'Bearer {access_token}'}
     )
     assert response.status_code == 200

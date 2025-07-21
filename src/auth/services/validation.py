@@ -8,7 +8,7 @@ from email_validator import validate_email, EmailNotValidError
 
 from src.auth.crud import get_user, get_user_for_email, get_token
 from src.auth.schemas import UsersSchema, UsersAddSchema
-from src.auth.services import TOKEN_TYPE_FIELD
+from src.auth.services.tokens import TOKEN_TYPE_FIELD
 from src.common.message import LogMessages
 
 logger = logging.getLogger(__name__)
@@ -66,12 +66,11 @@ async def validate_auth_user(
     return user
 
 
-async def verify_refresh_token(
-        token: str,
+async def verify_refresh_token_for_user(
         user: UsersSchema,
         db: AsyncSession
 ) -> bool:
-    db_token = await get_token(token, user, db)
+    db_token = await get_token(user, db)
     return db_token is not None
 
 

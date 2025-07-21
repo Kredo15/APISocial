@@ -3,8 +3,8 @@ from typing import Callable
 import pytest
 
 from tests.auth.utils import faker
-from src.auth.services import get_hash_password
-from src.auth.validation import (
+from src.auth.services.tokens import get_hash_password
+from src.auth.services.validation import (
     validate_password,
     valid_email
 )

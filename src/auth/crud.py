@@ -13,7 +13,7 @@ from src.auth.schemas import (
     TokenSchema
 )
 from src.auth.models import UsersOrm, TokenOrm
-from src.auth.services import get_hash_password
+from src.auth.services.tokens import get_hash_password
 from src.config.settings import settings
 
 
@@ -89,12 +89,11 @@ async def add_refresh_token(
 
 
 async def get_token(
-        token: str, user: UsersSchema,
+        user: UsersSchema,
         db: Annotated[AsyncSession, Depends(get_async_session)]
 ) -> TokenSchema:
     token_db = await db.scalar(select(TokenOrm).where(
         TokenOrm.user == user,
-        TokenOrm.token == token,
         TokenOrm.expires_at >= datetime.utcnow(),
         TokenOrm.revoked == False)
     )
@@ -115,10 +114,12 @@ async def revoke_refresh_token(
 
 
 async def revoke_all_refresh_token_for_device(
+        current_user: UsersSchema,
         payload: dict,
         db: Annotated[AsyncSession, Depends(get_async_session)]
 ) -> None:
     db_tokens = await db.scalars(select(TokenOrm).filter(
+        TokenOrm.user == current_user,
         TokenOrm.device_id == payload['device_id'],
         TokenOrm.revoked == False
     ))

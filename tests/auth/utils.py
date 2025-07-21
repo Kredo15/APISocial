@@ -10,8 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.config.settings import settings
 from src.auth.models import TokenOrm, UsersOrm
 from src.auth.schemas import UsersSchema
-from src.auth.services import decode_jwt, get_hash_password
-from src.auth.validation import validate_password
+from src.auth.services.tokens import decode_jwt, get_hash_password
+from src.auth.services.validation import validate_password
 
 faker = Faker()
 

@@ -22,7 +22,7 @@ async def test_refresh(
     access_token = create_test_access_token(user, data_for_token['device_id'])
     refresh_token = await create_test_refresh_token(user, data_for_token, async_test_session)
     response = await async_client.post(
-        url="/auth/refresh",
+        url="/user/refresh",
         headers={'Authorization': f'Bearer {access_token}'},
         json={"refresh_token": refresh_token}
     )

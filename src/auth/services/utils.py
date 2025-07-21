@@ -5,14 +5,13 @@ from datetime import timedelta
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.validation import (
-    verify_refresh_token,
+from src.auth.services.validation import (
     validate_token_type
 )
 from src.common.message import LogMessages
 from src.config.settings import settings
 from src.auth.schemas import UsersSchema, TokenDataSchema
-from src.auth.services import (
+from src.auth.services.tokens import (
     create_jwt,
     decode_jwt,
     get_jti_or_device_id,
@@ -95,20 +94,5 @@ async def get_user_by_token_sub(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="inactive user",
-        )
-    return user
-
-
-async def get_current_auth_user_for_refresh(
-        token: str,
-        db: AsyncSession
-) -> UsersSchema:
-    user = await get_user_by_token_sub(token, REFRESH_TOKEN_TYPE, db)
-    valid_token = await verify_refresh_token(token, user, db)
-    if not valid_token:
-        logger.error(LogMessages.JWT_INACTIVE.format(user_id=user.uid))
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="invalid token error",
         )
     return user

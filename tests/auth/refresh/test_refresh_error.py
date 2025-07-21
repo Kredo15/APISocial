@@ -34,7 +34,7 @@ async def test_auth_refresh_jwt_expired_revoke(
         revoked=revoked
     )
     response = await async_client.post(
-        url="/auth/refresh",
+        url="/user/refresh",
         headers={'Authorization': f'Bearer {access_token}'},
         json={"refresh_token": refresh_token}
     )
@@ -52,8 +52,10 @@ async def test_refresh_type_error(
 ):
     user = await create_test_user(user_credentials_data, async_test_session)
     access_token = create_test_access_token(user, data_for_token['device_id'])
+    refresh_token = await create_test_refresh_token(user, data_for_token, async_test_session)
+    assert refresh_token is not None
     response = await async_client.post(
-        url="/auth/refresh",
+        url="/user/refresh",
         headers={'Authorization': f'Bearer {access_token}'},
         json={"refresh_token": access_token}
     )
@@ -71,8 +73,10 @@ async def test_refresh_invalid_token_error(
 ):
     user = await create_test_user(user_credentials_data, async_test_session)
     access_token = create_test_access_token(user, data_for_token['device_id'])
+    refresh_token = await create_test_refresh_token(user, data_for_token, async_test_session)
+    assert refresh_token is not None
     response = await async_client.post(
-        url="/auth/refresh",
+        url="/user/refresh",
         headers={'Authorization': f'Bearer {access_token}'},
         json={"refresh_token": faker.pystr()}
     )
