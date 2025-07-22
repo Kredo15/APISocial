@@ -3,6 +3,7 @@ import logging
 from fastapi import HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
+from itsdangerous import BadSignature
 
 from src.cruds.auth import add_refresh_token
 from src.services.utils import (
@@ -16,10 +17,16 @@ from src.services.validations import (
     validate_token_type,
     validate_auth_user
 )
-from src.cruds.user import create_user, update_last_login, get_user
+from src.cruds.user import (
+    create_user,
+    update_last_login,
+    get_user,
+    set_verified_user
+)
 from src.schemas.auth import TokenDataSchema
 from src.schemas.user import UsersAddSchema, UsersSchema
 from src.message import LogMessages
+from src.tasks.confirmation_email import send_confirmation_email, get_loads_token
 
 logger = logging.getLogger(__name__)
 
@@ -58,11 +65,20 @@ async def register_user(
 ) -> TokenDataSchema:
     await verify_user(user, db)
     data_user = await create_user(user, db)
+    send_confirmation_email.delay(to_email=data_user.email)
     tokens = await create_tokens(data_user, db)
     logger.info(
         LogMessages.USER_CREATED.format(user_id=data_user.uid)
     )
     return tokens
+
+
+async def confirm_user(token: str, db: AsyncSession):
+    try:
+        email = get_loads_token(token)
+    except BadSignature:
+        raise HTTPException(status_code=400, detail="Неверный или просроченный токен")
+    await set_verified_user(email, db)
 
 
 async def get_user_by_token_sub(

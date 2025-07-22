@@ -63,3 +63,10 @@ async def user_change_password_db(
     async with db:
         user.password = get_hash_password(new_password)
         await db.commit()
+
+
+async def set_verified_user(
+        email: str,
+        db: Annotated[AsyncSession, Depends(get_async_session)]
+):
+    pass
