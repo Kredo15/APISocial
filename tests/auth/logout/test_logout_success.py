@@ -2,7 +2,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from tests.auth.utils import (
+from tests.utils import (
     create_test_refresh_token,
     create_test_access_token,
     create_test_user,
@@ -21,7 +21,7 @@ async def test_logout__success(
     access_token = create_test_access_token(user, data_for_token['device_id'])
     refresh_token = await create_test_refresh_token(user, data_for_token, async_test_session)
     response = await async_client.patch(
-        url="/user/sign-out",
+        url="/auth/sign-out",
         headers={'Authorization': f'Bearer {access_token}'}
     )
     assert response.status_code == 200

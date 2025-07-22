@@ -2,7 +2,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from tests.auth.utils import (
+from tests.utils import (
     create_test_refresh_token,
     create_test_access_token,
     create_test_user,
@@ -34,7 +34,7 @@ async def test_auth_refresh_jwt_expired_revoke(
         revoked=revoked
     )
     response = await async_client.post(
-        url="/user/refresh",
+        url="/auth/refresh",
         headers={'Authorization': f'Bearer {access_token}'},
         json={"refresh_token": refresh_token}
     )
@@ -55,7 +55,7 @@ async def test_refresh_type_error(
     refresh_token = await create_test_refresh_token(user, data_for_token, async_test_session)
     assert refresh_token is not None
     response = await async_client.post(
-        url="/user/refresh",
+        url="/auth/refresh",
         headers={'Authorization': f'Bearer {access_token}'},
         json={"refresh_token": access_token}
     )
@@ -76,7 +76,7 @@ async def test_refresh_invalid_token_error(
     refresh_token = await create_test_refresh_token(user, data_for_token, async_test_session)
     assert refresh_token is not None
     response = await async_client.post(
-        url="/user/refresh",
+        url="/auth/refresh",
         headers={'Authorization': f'Bearer {access_token}'},
         json={"refresh_token": faker.pystr()}
     )

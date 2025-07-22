@@ -5,9 +5,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
-from src.config.settings import settings
-from src.auth.routers.login_handlers import router as auth_router
-from src.auth.routers.user_handlers import router as user_router
+from src.core.settings import settings
+from src.routers import main_router
 
 logging.basicConfig(level=logging.INFO)
 
@@ -22,8 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth_router)
-app.include_router(user_router)
+app.include_router(main_router)
 
 
 if __name__ == "__main__":

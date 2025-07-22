@@ -2,7 +2,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from tests.auth.utils import get_user_data, create_test_user
+from tests.utils import get_user_data, create_test_user
 
 
 @pytest.mark.asyncio
