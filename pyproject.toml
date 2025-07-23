@@ -6,7 +6,7 @@ authors = [
     {name = "Kredo15",email = "kredo1511@yandex.ru"}
 ]
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11, <4.0"
 dependencies = [
     "setuptools (>=80.9.0,<81.0.0)",
     "fastapi (>=0.115.14,<0.116.0)",
@@ -27,7 +27,8 @@ dependencies = [
     "faker (>=37.4.0,<38.0.0)",
     "authlib (>=1.6.1,<2.0.0)",
     "itsdangerous (>=2.2.0,<3.0.0)",
-    "celery (>=5.5.3,<6.0.0)"
+    "celery (>=5.5.3,<6.0.0)",
+    "fastapi-cache2[redis] (>=0.2.2,<0.3.0)",
 ]
 
 

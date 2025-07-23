@@ -3,6 +3,7 @@ import logging
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi_cache.decorator import cache
 
 from src.services.auth import get_user_by_token_sub
 from src.services.utils import ACCESS_TOKEN_TYPE
@@ -18,6 +19,7 @@ oauth2_scheme = OAuth2PasswordBearer(
 logger = logging.getLogger(__name__)
 
 
+@cache(expire=1800)
 async def get_current_auth_user(
         token: str = Depends(oauth2_scheme),
         db: AsyncSession = Depends(get_async_session)

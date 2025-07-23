@@ -68,5 +68,8 @@ async def user_change_password_db(
 async def set_verified_user(
         email: str,
         db: Annotated[AsyncSession, Depends(get_async_session)]
-):
-    pass
+) -> None:
+    user = await get_user_for_email(email, db)
+    async with db:
+        user.is_verified = True
+        await db.commit()
