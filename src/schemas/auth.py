@@ -19,7 +19,7 @@ class TokenSchema(TokenAddSchema):
 
 class TokenDataSchema(BaseModel):
     access_token: str
-    refresh_token: str | None = None
+    refresh_token: str
     token_type: str = "Bearer"
 
 
@@ -27,5 +27,5 @@ class UpdateTokensIn(BaseModel):
     refresh_token: str
 
 
-class SuccessOut(BaseModel):
+class Success(BaseModel):
     success: bool = True
