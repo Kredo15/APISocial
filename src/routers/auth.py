@@ -51,12 +51,12 @@ async def confirm_registration(
 
 @router.post("/refresh")
 async def refresh(
-        request: Request,
-        refresh_token: str = Cookie(None),
+        response: Response,
+        refresh_token: str | None = Cookie(default=None),
         current_user: UsersSchema = Depends(get_current_auth_user),
         db: AsyncSession = Depends(get_async_session)
 ) -> TokenDataSchema:
-    data = await refresh_jwt(request, refresh_token, current_user, db)
+    data = await refresh_jwt(refresh_token, response, current_user, db)
     return data
 
 

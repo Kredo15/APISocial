@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 
 class TokenAddSchema(BaseModel):
+    jti: UUID
     token: str
     user_id: int
     device_id: UUID
@@ -12,7 +13,6 @@ class TokenAddSchema(BaseModel):
 
 
 class TokenSchema(TokenAddSchema):
-    id: int
     revoked: bool
     created_at: datetime
 

@@ -13,7 +13,7 @@ class UsersOrm(Base):
     __tablename__ = "users"
 
     uid: Mapped[str] = mapped_column(
-        String, default=str(uuid.uuid4), primary_key=True
+        String, default=str(uuid.uuid4()), primary_key=True
     )
     email: Mapped[EmailStr] = mapped_column(
         String, nullable=False, unique=True

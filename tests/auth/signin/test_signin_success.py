@@ -30,6 +30,6 @@ async def test_login(
     assert response.status_code == 200
     response_data = response.json()
     verify_access_token(response_data['access_token'], user_credentials_data)
-    await verify_refresh_token(response_data['refresh_token'],
+    await verify_refresh_token(response.cookies.get("refresh_token"),
                                user_credentials_data.get("username"),
                                async_test_session)

@@ -3,11 +3,8 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from tests.utils import (
-    create_test_refresh_token,
-    create_test_access_token,
     verify_access_token,
-    verify_refresh_token,
-    create_test_user
+    verify_refresh_token, create_test_user, create_test_access_token, create_test_refresh_token
 )
 
 
@@ -24,11 +21,13 @@ async def test_refresh(
     response = await async_client.post(
         url="/auth/refresh",
         headers={'Authorization': f'Bearer {access_token}'},
-        json={"refresh_token": refresh_token}
+        cookies={
+            'refresh_token': refresh_token
+        }
     )
     assert response.status_code == 200
     response_data = response.json()
     verify_access_token(response_data['access_token'], user_credentials_data)
-    await verify_refresh_token(response_data['refresh_token'],
+    await verify_refresh_token(response.cookies.get("refresh_token"),
                                user_credentials_data.get("username"),
                                async_test_session)

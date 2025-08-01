@@ -28,3 +28,4 @@ async def test_logout__success(
     response_data = response.json()
     assert response_data['success']
     assert await verify_refresh_token_revoke(refresh_token, async_test_session)
+    assert response.cookies.get("refresh_token") is None

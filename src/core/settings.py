@@ -14,7 +14,12 @@ class DBSettings(BaseSettings):
 
     @property
     def database_url(self):
-        return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS.get_secret_value()}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+        return f"postgresql+asyncpg:" \
+               f"//{self.DB_USER}:" \
+               f"{self.DB_PASS.get_secret_value()}" \
+               f"@{self.DB_HOST}:" \
+               f"{self.DB_PORT}/" \
+               f"{self.DB_NAME}"
 
     model_config = SettingsConfigDict(env_file=f"{BASE_DIR}/.env", env_file_encoding="utf8", extra="ignore")
 
@@ -33,11 +38,11 @@ class RedisSettings(BaseSettings):
     REDIS_PORT: int
     REDIS_DB: int
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf8", extra="ignore")
+    model_config = SettingsConfigDict(env_file=f"{BASE_DIR}/.env", env_file_encoding="utf8", extra="ignore")
 
     @property
     def redis_url(self):
-        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}"
 
 
 class JWTSettings(BaseSettings):
@@ -54,7 +59,7 @@ class Settings(BaseSettings):
     MODE: str
 
     CORS_ORIGINS: list
-    FRONTEND_URL: str
+    APP_URL: str
     SECRET_KEY_EMAIL: SecretStr
     db_settings: DBSettings = DBSettings()
     redis_settings: RedisSettings = RedisSettings()

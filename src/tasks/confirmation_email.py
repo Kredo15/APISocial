@@ -20,7 +20,7 @@ def get_loads_token(token: str):
 @shared_task
 def send_confirmation_email(to_email: str) -> None:
     token = get_confirmation_token(to_email)
-    confirmation_url = f"{settings.FRONTEND_URL}/auth/register_confirm?token={token}"
+    confirmation_url = f"{settings.APP_URL}/auth/register_confirm?token={token}"
 
     text = f"""Спасибо за регистрацию!
     Для подтверждения регистрации перейдите по ссылке: {confirmation_url}

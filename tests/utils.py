@@ -3,7 +3,7 @@ from datetime import timedelta, datetime
 import jwt
 import uuid
 from faker import Faker
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -83,6 +83,27 @@ async def create_test_refresh_token(
         await session.commit()
 
     return refresh_token
+
+
+async def update_refresh_token(
+        refresh_token: str,
+        expired: bool,
+        revoked: bool,
+        session: AsyncSession,
+) -> None:
+    now = datetime.utcnow()
+    expire_delta = timedelta(days=-1) if expired else timedelta(days=30)
+    expires_at = now + expire_delta
+    async with session:
+        await session.execute(
+            update(TokenOrm)
+            .where(TokenOrm.token == refresh_token)
+            .values(
+                expires_at=expires_at,
+                revoked=revoked
+            )
+        )
+        await session.commit()
 
 
 def create_test_access_token(
