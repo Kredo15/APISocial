@@ -33,12 +33,13 @@ async def test_auth_refresh_jwt_expired_revoke(
         expired=expired,
         revoked=revoked
     )
-    response = await async_client.post(
-        url="/auth/refresh",
-        headers={'Authorization': f'Bearer {access_token}'},
-        cookies={
+    async_client.cookies.update({
             'refresh_token': refresh_token
         }
+    )
+    response = await async_client.post(
+        url="/auth/refresh",
+        headers={'Authorization': f'Bearer {access_token}'}
     )
     assert response.status_code == 401
     response_data = response.json()
@@ -56,12 +57,13 @@ async def test_refresh_type_error(
     access_token = create_test_access_token(user, data_for_token['device_id'])
     refresh_token = await create_test_refresh_token(user, data_for_token, async_test_session)
     assert refresh_token is not None
-    response = await async_client.post(
-        url="/auth/refresh",
-        headers={'Authorization': f'Bearer {access_token}'},
-        cookies={
+    async_client.cookies.update({
             'refresh_token': access_token
         }
+    )
+    response = await async_client.post(
+        url="/auth/refresh",
+        headers={'Authorization': f'Bearer {access_token}'}
     )
     assert response.status_code == 401
     response_data = response.json()
@@ -79,12 +81,13 @@ async def test_refresh_invalid_token_error(
     access_token = create_test_access_token(user, data_for_token['device_id'])
     refresh_token = await create_test_refresh_token(user, data_for_token, async_test_session)
     assert refresh_token is not None
+    async_client.cookies.update({
+        'refresh_token': faker.pystr()
+        }
+    )
     response = await async_client.post(
         url="/auth/refresh",
-        headers={'Authorization': f'Bearer {access_token}'},
-        cookies={
-            'refresh_token': faker.pystr()
-        }
+        headers={'Authorization': f'Bearer {access_token}'}
     )
     assert response.status_code == 401
     response_data = response.json()
