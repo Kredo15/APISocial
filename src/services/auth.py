@@ -4,15 +4,22 @@ from urllib.request import Request
 from fastapi import HTTPException, status, Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from itsdangerous import BadSignature
+from itsdangerous import URLSafeTimedSerializer, BadSignature
 
-from src.cruds.auth import add_refresh_token, revoke_refresh_token, revoke_all_refresh_token_for_device
+from src.core.settings import settings
+from src.cruds.auth import (
+    add_refresh_token,
+    revoke_refresh_token,
+    revoke_all_refresh_token_for_device
+)
 from src.services.cookie import get_payload_refresh_token_for_cookie
 from src.services.utils import (
     get_jti_or_device_id,
     create_access_token,
     create_refresh_token,
-    get_current_token_payload, decode_jwt, REFRESH_TOKEN_TYPE, get_payload_with_header
+    get_current_token_payload,
+    decode_jwt,
+    get_payload_with_header
 )
 from src.services.validations import (
     verify_user,
@@ -28,8 +35,8 @@ from src.cruds.user import (
 from src.schemas.auth import TokenDataSchema
 from src.schemas.user import UsersAddSchema, UsersSchema
 from src.message import LogMessages
-from src.tasks.confirmation_email import send_confirmation_email, get_loads_token
-
+from src.tasks.confirmation_email import send_confirmation_email
+from src.services.security import generate_token
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +80,8 @@ async def register_user(
 ) -> TokenDataSchema:
     await verify_user(user, db)
     data_user = await create_user(user, db)
-    send_confirmation_email.delay(to_email=data_user.email)
+    token = generate_token(data_user.email)
+    send_confirmation_email.delay(to_email=data_user.email, token=token)
     tokens = await create_tokens(data_user, db)
     response.set_cookie(
         **get_payload_refresh_token_for_cookie(tokens.refresh_token)
@@ -84,6 +92,25 @@ async def register_user(
     return tokens
 
 
+async def confirm_user(
+        token: str,
+        current_user: UsersSchema,
+        db: AsyncSession
+) -> None:
+    serializer = URLSafeTimedSerializer(settings.email_settings.SECRET_KEY_EMAIL.get_secret_value())
+    try:
+        email = serializer.loads(
+            token, salt=settings.email_settings.SECURITY_PASSWORD_SALT.get_secret_value(), max_age=3600
+        )
+    except BadSignature:
+        logger.error(LogMessages.USER_CONFIRMED.format(email=current_user.uid))
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+    await user_is_confirmed(email, db)
+    logger.info(
+        LogMessages.USER_CONFIRMED.format(user_id=current_user.uid)
+    )
+
+
 async def refresh_jwt(
         refresh_token: str,
         response: Response,
@@ -91,7 +118,7 @@ async def refresh_jwt(
         db: AsyncSession
 ) -> TokenDataSchema:
     payload = decode_jwt(refresh_token.encode())
-    validate_token_type(payload, REFRESH_TOKEN_TYPE)
+    validate_token_type(payload, settings.jwt_settings.REFRESH_TOKEN_TYPE)
     await revoke_refresh_token(payload, db)
     tokens = await create_tokens(current_user, db, payload['device_id'])
     response.set_cookie(
@@ -115,14 +142,6 @@ async def logout_user(
     logger.info(
         LogMessages.USER_LOGGED_OUT.format(username=payload.get('email'))
     )
-
-
-async def confirm_user(token: str, db: AsyncSession):
-    try:
-        email = get_loads_token(token)
-    except BadSignature:
-        raise HTTPException(status_code=400, detail="Неверный или просроченный токен")
-    await user_is_confirmed(email, db)
 
 
 async def get_user_by_token_sub(

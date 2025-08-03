@@ -7,8 +7,7 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.services.security import get_hash_password
-from src.services.utils import decode_jwt
+from src.services.security import get_hash_password, decode_jwt
 from src.database.models.user import UsersOrm, TokenOrm
 from src.schemas.user import UsersSchema
 from src.core.settings import settings
@@ -206,3 +205,11 @@ async def verify_change_password(
 ) -> bool:
     user = await get_user(user_email, session)
     return validate_password(new_password, user.password)
+
+
+async def check_confirm_user(
+        user_email: str,
+        session: AsyncSession
+) -> bool:
+    user = await get_user(user_email, session)
+    return user.is_verified

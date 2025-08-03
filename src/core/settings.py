@@ -29,6 +29,8 @@ class EmailSettings(BaseSettings):
     EMAIL_PORT: int
     EMAIL_USERNAME: str
     EMAIL_PASSWORD: SecretStr
+    SECRET_KEY_EMAIL: SecretStr
+    SECURITY_PASSWORD_SALT: SecretStr
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf8", extra="ignore")
 
@@ -46,6 +48,9 @@ class RedisSettings(BaseSettings):
 
 
 class JWTSettings(BaseSettings):
+    TOKEN_TYPE_FIELD: str
+    ACCESS_TOKEN_TYPE: str
+    REFRESH_TOKEN_TYPE: str
     PRIVATE_KEY_PATH: Path = BASE_DIR / "src" / "certs" / "jwt-private.pem"
     PUBLIC_KEY_PATH: Path = BASE_DIR / "src" / "certs" / "jwt-public.pem"
     ALGORITHM: str
@@ -60,10 +65,10 @@ class Settings(BaseSettings):
 
     CORS_ORIGINS: list
     APP_URL: str
-    SECRET_KEY_EMAIL: SecretStr
     db_settings: DBSettings = DBSettings()
     redis_settings: RedisSettings = RedisSettings()
     jwt_settings: JWTSettings = JWTSettings()
+    email_settings: EmailSettings = EmailSettings()
 
     model_config = SettingsConfigDict(env_file=f"{BASE_DIR}/.env", env_file_encoding="utf8", extra="ignore")
 

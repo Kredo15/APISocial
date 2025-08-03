@@ -7,7 +7,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from email_validator import validate_email, EmailNotValidError
 
 from src.cruds.auth import get_token
-from src.services.utils import TOKEN_TYPE_FIELD
+from src.core.settings import settings
 from src.cruds.user import get_user, get_user_for_email
 from src.schemas.user import UsersSchema, UsersAddSchema
 from src.message import LogMessages
@@ -27,7 +27,7 @@ def validate_token_type(
         payload: dict,
         token_type: str,
 ) -> bool:
-    current_token_type = payload.get(TOKEN_TYPE_FIELD)
+    current_token_type = payload.get(settings.jwt_settings.TOKEN_TYPE_FIELD)
     if current_token_type == token_type:
         return True
     logger.error(LogMessages.JWT_ERROR_TYPE)

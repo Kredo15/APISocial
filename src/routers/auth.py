@@ -44,9 +44,9 @@ async def confirm_registration(
         token: str,
         current_user: UsersSchema = Depends(get_current_auth_user),
         db: AsyncSession = Depends(get_async_session)
-):
-    await confirm_user(token, db)
-    return {"message": "Электронная почта подтверждена"}
+) -> Success:
+    await confirm_user(token, current_user, db)
+    return Success()
 
 
 @router.post("/refresh")

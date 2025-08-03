@@ -1,25 +1,17 @@
+import logging
 from email.message import EmailMessage
 import smtplib
 
 from celery import shared_task
-from itsdangerous import URLSafeTimedSerializer
 
+from src.message import LogMessages
 from src.core.settings import settings
 
-serializer = URLSafeTimedSerializer(secret_key=settings.SECRET_KEY_EMAIL.get_secret_value())
-
-
-def get_confirmation_token(email: str):
-    return serializer.dumps(email)
-
-
-def get_loads_token(token: str):
-    return serializer.loads(token, max_age=3600)
+logger = logging.getLogger(__name__)
 
 
 @shared_task
-def send_confirmation_email(to_email: str) -> None:
-    token = get_confirmation_token(to_email)
+def send_confirmation_email(to_email: str, token: str) -> None:
     confirmation_url = f"{settings.APP_URL}/auth/register_confirm?token={token}"
 
     text = f"""Спасибо за регистрацию!
@@ -31,10 +23,14 @@ def send_confirmation_email(to_email: str) -> None:
     message["From"] = settings.email_settings.EMAIL_USERNAME
     message["To"] = to_email
     message["Subject"] = "Подтверждение регистрации"
+    try:
+        with smtplib.SMTP_SSL(host=settings.email_settings.EMAIL_HOST, port=settings.email_settings.EMAIL_PORT) as smtp:
+            smtp.login(
+                user=settings.email_settings.EMAIL_USERNAME,
+                password=settings.email_settings.EMAIL_PASSWORD.get_secret_value(),
+            )
+            smtp.send_message(msg=message)
+        logger.info(LogMessages.EMAIL_SUCCESS_SEND.format(to_email=to_email))
 
-    with smtplib.SMTP_SSL(host=settings.email_settings.EMAIL_HOST, port=settings.email_settings.EMAIL_PORT) as smtp:
-        smtp.login(
-            user=settings.email_settings.EMAIL_USERNAME,
-            password=settings.email_settings.EMAIL_PASSWORD.get_secret_value(),
-        )
-        smtp.send_message(msg=message)
+    except Exception as exc:
+        logger.error(LogMessages.EMAIL_SUCCESS_SEND.format(to_email=to_email, e=str(exc)))
