@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 71aa223179b7
+Revision ID: 59a990556518
 Revises: 
-Create Date: 2025-07-14 22:17:01.564131
+Create Date: 2025-08-04 23:10:15.853715
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '71aa223179b7'
+revision: str = '59a990556518'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -28,7 +28,6 @@ def upgrade() -> None:
     sa.Column('password', sa.String(), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('is_verified', sa.Boolean(), nullable=False),
-    sa.Column('is_administrator', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', now())"), nullable=False),
     sa.Column('last_login', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('uid'),
@@ -51,7 +50,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('tokens',
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('jti', sa.String(), nullable=False),
     sa.Column('token', sa.String(), nullable=False),
     sa.Column('user_id', sa.String(), nullable=False),
     sa.Column('device_id', sa.String(), nullable=False),
@@ -59,7 +58,7 @@ def upgrade() -> None:
     sa.Column('revoked', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', now())"), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.uid'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('jti')
     )
     op.create_index(op.f('ix_tokens_token'), 'tokens', ['token'], unique=True)
     # ### end Alembic commands ###

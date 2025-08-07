@@ -103,7 +103,7 @@ async def confirm_user(
             token, salt=settings.email_settings.SECURITY_PASSWORD_SALT.get_secret_value(), max_age=3600
         )
     except BadSignature:
-        logger.error(LogMessages.USER_CONFIRMED.format(email=current_user.uid))
+        logger.error(LogMessages.EMAIL_ERROR_SEND.format(user_id=current_user.uid))
         raise HTTPException(status_code=400, detail="Invalid or expired token")
     await user_is_confirmed(email, db)
     logger.info(

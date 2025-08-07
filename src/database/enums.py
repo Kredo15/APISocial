@@ -1,12 +1,12 @@
 import enum
 
 
-class GenderEnum(enum.Enum):
+class GenderEnum(str, enum.Enum):
     male = "мужской"
     female = "женский"
 
 
-class FamilyStatusEnum(enum.Enum):
+class FamilyStatusEnum(str, enum.Enum):
     not_married = ""
     dating = ""
     engaged = ""

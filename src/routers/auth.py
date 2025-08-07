@@ -39,7 +39,7 @@ async def signup(
     return data
 
 
-@router.post("/register_confirm")
+@router.post("/register_confirm/{token}")
 async def confirm_registration(
         token: str,
         current_user: UsersSchema = Depends(get_current_auth_user),

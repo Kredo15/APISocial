@@ -23,7 +23,7 @@ async def test_user_change_password(
     assert refresh_token is not None
     new_password = faker.password()
     response = await async_client.patch(
-        url="/user/change-password",
+        url="/profile/change-password",
         headers={'Authorization': f'Bearer {access_token}'},
         json={
             "old_password": user_credentials_data.get('password'),

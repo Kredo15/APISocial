@@ -3,7 +3,7 @@ import datetime
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.database.base_model import Base, intpk, str_256
+from src.database.models.base_model import Base, intpk, str_256
 from src.database.enums import GenderEnum, FamilyStatusEnum
 
 

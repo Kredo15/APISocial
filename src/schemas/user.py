@@ -5,7 +5,7 @@ from pydantic import BaseModel, EmailStr
 
 
 class UsersAddSchema(BaseModel):
-    email: EmailStr | None = None
+    email: EmailStr
     username: str
     password: str
 

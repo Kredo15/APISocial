@@ -5,8 +5,7 @@ from pydantic import EmailStr
 from sqlalchemy import String, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.database.base_model import Base, str_256, created_at
-from src.database.models.profile import ProfileOrm
+from src.database.models.base_model import Base, str_256, created_at
 
 
 class UsersOrm(Base):
@@ -26,7 +25,6 @@ class UsersOrm(Base):
     is_verified: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[created_at]
     last_login: Mapped[datetime] = mapped_column(DateTime, nullable=True)
-
     profile: Mapped["ProfileOrm"] = relationship(
         uselist=False, back_populates='user', cascade='all, delete-orphan'
     )

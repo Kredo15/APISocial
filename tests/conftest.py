@@ -6,7 +6,7 @@ from httpx import ASGITransport, AsyncClient
 from src.main import app
 from src.core.db_dependency import engine, async_session_maker
 from src.core.settings import settings
-from src.database.base_model import Base
+from src.database.models.base_model import Base
 from tests.utils import faker
 
 

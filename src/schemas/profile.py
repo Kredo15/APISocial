@@ -1,4 +1,6 @@
 from datetime import date
+from uuid import UUID
+from typing import List
 
 from pydantic import BaseModel
 
@@ -6,7 +8,6 @@ from src.database.enums import GenderEnum, FamilyStatusEnum
 
 
 class ProfileAddSchema(BaseModel):
-    user_id: int
     gender: GenderEnum | None
     date_of_birth: date
     photo: str | None
@@ -20,5 +21,5 @@ class ProfileSchema(ProfileAddSchema):
     id: int
 
 
-class ProfileRelSchema(ProfileAddSchema):
-    user: "UsersSchema"
+class ProfilesSchema(BaseModel):
+    profiles: List[ProfileSchema]

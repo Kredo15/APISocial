@@ -32,7 +32,7 @@ class EmailSettings(BaseSettings):
     SECRET_KEY_EMAIL: SecretStr
     SECURITY_PASSWORD_SALT: SecretStr
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf8", extra="ignore")
+    model_config = SettingsConfigDict(env_file=f"{BASE_DIR}/.env", env_file_encoding="utf8", extra="ignore")
 
 
 class RedisSettings(BaseSettings):

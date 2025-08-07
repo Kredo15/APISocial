@@ -33,4 +33,4 @@ def send_confirmation_email(to_email: str, token: str) -> None:
         logger.info(LogMessages.EMAIL_SUCCESS_SEND.format(to_email=to_email))
 
     except Exception as exc:
-        logger.error(LogMessages.EMAIL_SUCCESS_SEND.format(to_email=to_email, e=str(exc)))
+        logger.error(LogMessages.EMAIL_ERROR_SEND.format(to_email=to_email, e=str(exc)))
