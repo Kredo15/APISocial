@@ -15,11 +15,13 @@ from schemas.profile import (
 from src.services.profile import (
     change_password,
     reset_password,
-    get_or_create_profile
+    get_or_create_current_profile,
+    get_profile_for_user,
+    update_profile_for_user
 )
 from src.core.db_dependency import get_async_session
 from src.schemas.user import Success
-from src.cruds.profile import get_all_profile
+from src.cruds.profile import get_all_profiles
 
 router = APIRouter(prefix='/profile', tags=['profile'])
 
@@ -46,13 +48,33 @@ async def user_reset_password(
     return Success()
 
 
-@router.get('/get')
-async def get_profile_for_user(
+@router.get('/self')
+async def profile(
         current_user: UsersSchema = Depends(get_current_auth_user),
         db: AsyncSession = Depends(get_async_session)
 ) -> ProfileSchema:
-    profile = await get_or_create_profile(current_user.uid, db)
-    return profile
+    result = await get_or_create_current_profile(current_user.uid, db)
+    return result
+
+
+@router.put('/update')
+async def update_profile(
+        data_profile: ProfileAddSchema,
+        current_user: UsersSchema = Depends(get_current_auth_user),
+        db: AsyncSession = Depends(get_async_session)
+) -> ProfileSchema:
+    result = await update_profile_for_user(data_profile, current_user.uid, db)
+    return result
+
+
+@router.get('/get/{profile_id}')
+async def get_profile(
+        profile_id: str,
+        current_user: UsersSchema = Depends(get_current_auth_user),
+        db: AsyncSession = Depends(get_async_session)
+) -> ProfileSchema:
+    result = await get_profile_for_user(profile_id, current_user.uid, db)
+    return result
 
 
 @router.get('/all')
@@ -60,5 +82,5 @@ async def get_profiles(
         current_user: UsersSchema = Depends(get_current_auth_user),
         db: AsyncSession = Depends(get_async_session)
 ):
-    result = await get_all_profile(db)
+    result = await get_all_profiles(db)
     return result

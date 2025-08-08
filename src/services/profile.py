@@ -4,7 +4,11 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from schemas.profile import ProfilesSchema, ProfileSchema
+from schemas.profile import (
+    ProfilesSchema,
+    ProfileSchema,
+    ProfileAddSchema
+)
 from src.services.validations import validate_password
 from src.cruds.user import user_change_password_db
 from src.cruds.profile import (
@@ -57,7 +61,7 @@ async def reset_password(
     )
 
 
-async def get_or_create_profile(
+async def get_or_create_current_profile(
         user_id: UUID,
         db: AsyncSession
 ) -> ProfileSchema:
@@ -65,3 +69,29 @@ async def get_or_create_profile(
     if profile is None:
         profile = await create_profile(str(user_id), db)
     return profile
+
+
+async def get_profile_for_user(
+        profile_id: str,
+        user_id: UUID,
+        db: AsyncSession
+) -> ProfileSchema:
+    profile = await get_profile(profile_id, db)
+    if profile is None:
+        logger.error(LogMessages.PROFILE_NOT_FOUND.format(
+            user_id=user_id,
+            profile_id=profile_id)
+        )
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="page not found"
+        )
+    return profile
+
+
+async def update_profile_for_user(
+        data_profile: ProfileAddSchema,
+        user_id: UUID,
+        db: AsyncSession
+) -> ProfileSchema:
+    pass

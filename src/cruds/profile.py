@@ -9,8 +9,7 @@ from src.core.db_dependency import get_async_session
 from src.database.models.profile import ProfileOrm
 from schemas.profile import (
     ProfileSchema,
-    ProfilesSchema,
-    ProfileAddSchema
+    ProfilesSchema
 )
 
 
@@ -31,7 +30,7 @@ async def get_profile(
     return profile
 
 
-async def get_all_profile(
+async def get_all_profiles(
         db: Annotated[AsyncSession, Depends(get_async_session)]
 ):
     profiles = await db.execute(select(ProfileOrm).options(

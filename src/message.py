@@ -23,3 +23,5 @@ class LogMessages:
 
     EMAIL_SUCCESS_SEND = "Email successfully sent to {to_email}"
     EMAIL_ERROR_SEND = "Error sending email to {to_email}: {e}"
+
+    PROFILE_NOT_FOUND = "Profile {profile_id} not found to user: {user_id}"
