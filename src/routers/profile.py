@@ -10,19 +10,21 @@ from src.schemas.user import (
 from schemas.profile import (
     ProfileSchema,
     ProfilesSchema,
-    ProfileAddSchema
+    ProfileAddSchema,
+    ResponseAddition,
+    CommandSchema
 )
 from src.services.profile import (
     change_password,
     reset_password,
     get_or_create_current_profile,
     get_profile_for_user,
-    update_profile_for_user
+    update_profile_for_current_user,
+    get_all_profiles,
+    addition_friend
 )
 from src.core.db_dependency import get_async_session
 from src.schemas.user import Success
-from src.cruds.profile import get_all_profiles
-
 router = APIRouter(prefix='/profile', tags=['profile'])
 
 
@@ -63,7 +65,11 @@ async def update_profile(
         current_user: UsersSchema = Depends(get_current_auth_user),
         db: AsyncSession = Depends(get_async_session)
 ) -> ProfileSchema:
-    result = await update_profile_for_user(data_profile, current_user.uid, db)
+    result = await update_profile_for_current_user(
+        data_profile=data_profile,
+        user_id=current_user.uid,
+        db=db
+    )
     return result
 
 
@@ -81,6 +87,17 @@ async def get_profile(
 async def get_profiles(
         current_user: UsersSchema = Depends(get_current_auth_user),
         db: AsyncSession = Depends(get_async_session)
-):
+) -> ProfilesSchema:
     result = await get_all_profiles(db)
     return result
+
+
+@router.post('/friend/addition')
+async def addition(
+        user_id: str,
+        command: CommandSchema,
+        current_user: UsersSchema = Depends(get_current_auth_user),
+        db: AsyncSession = Depends(get_async_session)
+) -> ResponseAddition:
+    response = await addition_friend(command.command, user_id, current_user.uid, db)
+    return response

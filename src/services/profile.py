@@ -4,16 +4,23 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from database.enums import StatusEnum
 from schemas.profile import (
     ProfilesSchema,
     ProfileSchema,
-    ProfileAddSchema
+    ProfileAddSchema,
+    ResponseAdditionSchema
 )
 from src.services.validations import validate_password
 from src.cruds.user import user_change_password_db
 from src.cruds.profile import (
     get_profile,
-    create_profile
+    create_profile,
+    update_profile,
+    get_profiles,
+    check_friend_requester,
+    send_friend_requester,
+    update_status_friend
 )
 from src.schemas.user import (
     UsersSchema,
@@ -89,9 +96,67 @@ async def get_profile_for_user(
     return profile
 
 
-async def update_profile_for_user(
+async def update_profile_for_current_user(
         data_profile: ProfileAddSchema,
         user_id: UUID,
         db: AsyncSession
 ) -> ProfileSchema:
-    pass
+    data_profile = data_profile.dict()
+    try:
+        profile = await update_profile(
+            data_profile=data_profile,
+            user_id=str(user_id),
+            db=db
+        )
+        return profile
+    except Exception as errData:
+        logger.error(LogMessages.PROFILE_ERROR_SERVER.format(errData=errData))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=errData
+        )
+
+
+async def get_all_profiles(
+        db: AsyncSession
+) -> ProfilesSchema:
+    profiles = await get_profiles(db)
+    return profiles
+
+
+async def addition_friend(
+        command: str,
+        user_id: str,
+        current_user: UUID,
+        db: AsyncSession
+) -> ResponseAdditionSchema:
+    friend = await check_friend_requester(user_id, str(current_user), db)
+    if friend is None and command == "send_request":
+        await send_friend_requester(user_id, str(current_user), db)
+        return ResponseAdditionSchema(
+            message="Friend request sent"
+        )
+    elif friend and command == "send_request":
+        return ResponseAdditionSchema(
+            message="The friend request has already been sent"
+        )
+    if friend and command == "accept_request":
+        status_request = StatusEnum.accepted
+        message = "Friend request accepted"
+    elif friend and command == "reject_request":
+        status_request = StatusEnum.rejected
+        message = "Friend request rejected"
+    else:
+        logger.error(LogMessages.FRIEND_REQUEST_ERROR.format(user_id=str(current_user)))
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Not found friend request"
+        )
+    await update_status_friend(
+        status_request,
+        friend.id,
+        db
+    )
+    return ResponseAdditionSchema(
+        message=message
+    )

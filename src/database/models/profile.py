@@ -3,8 +3,8 @@ import datetime
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.database.models.base_model import Base, intpk, str_256
-from src.database.enums import GenderEnum, FamilyStatusEnum
+from src.database.models.base_model import Base, intpk, str_256, created_at
+from src.database.enums import GenderEnum, FamilyStatusEnum, StatusEnum
 
 
 class ProfileOrm(Base):
@@ -25,3 +25,21 @@ class ProfileOrm(Base):
     additional_information: Mapped[str]
 
     user: Mapped["UsersOrm"] = relationship("UsersOrm", back_populates="profile")
+
+
+class FriendsOrm(Base):
+    __tablename__ = "friends"
+
+    id: Mapped[intpk]
+    requester_user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE")
+    )
+    receiver_user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE")
+    )
+    status: Mapped[StatusEnum] = mapped_column(default=StatusEnum.pending)
+    request_date: Mapped[created_at]
+    acceptance_date: Mapped[datetime.date]
+
+    requester: Mapped["UsersOrm"] = relationship(back_populates="requesters")
+    receiver: Mapped["UsersOrm"] = relationship(back_populates="receivers")

@@ -1,6 +1,6 @@
 from datetime import datetime
-
 import uuid
+
 from pydantic import EmailStr
 from sqlalchemy import String, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -25,11 +25,18 @@ class UsersOrm(Base):
     is_verified: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[created_at]
     last_login: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+
+    token: Mapped[list["TokenOrm"]] = relationship(
+       back_populates='user', cascade='all, delete-orphan'
+    )
     profile: Mapped["ProfileOrm"] = relationship(
         uselist=False, back_populates='user', cascade='all, delete-orphan'
     )
-    token: Mapped[list["TokenOrm"]] = relationship(
-       uselist=False, back_populates='user', cascade='all, delete-orphan'
+    requesters: Mapped[list["FriendsOrm"]] = relationship(
+       back_populates='requester', cascade='all, delete-orphan'
+    )
+    receivers: Mapped[list['FriendsOrm']] = relationship(
+       back_populates='receiver', cascade='all, delete-orphan'
     )
 
 

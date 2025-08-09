@@ -25,3 +25,6 @@ class LogMessages:
     EMAIL_ERROR_SEND = "Error sending email to {to_email}: {e}"
 
     PROFILE_NOT_FOUND = "Profile {profile_id} not found to user: {user_id}"
+    PROFILE_ERROR_SERVER = "Error server by update profile: {errData}"
+
+    FRIEND_REQUEST_ERROR = "Not found friend request for user: {user_id}"

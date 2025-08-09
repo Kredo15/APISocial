@@ -15,3 +15,9 @@ class FamilyStatusEnum(str, enum.Enum):
     in_love = ""
     complicated = ""
     active_search = ""
+
+
+class StatusEnum(str, enum.Enum):
+    pending = "ожидание"
+    accepted = "принято"
+    rejected = "отклонено"
