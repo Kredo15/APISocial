@@ -2,19 +2,19 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.services.dependencies import get_current_auth_user
-from src.schemas.user import (
+from src.schemas.user_schema import (
     UsersSchema,
     ChangePasswordSchema,
     ResetPasswordSchema
 )
-from schemas.profile import (
+from src.schemas.profile_schema import (
     ProfileSchema,
     ProfilesSchema,
     ProfileAddSchema,
-    ResponseAddition,
+    ResponseAdditionSchema,
     CommandSchema
 )
-from src.services.profile import (
+from src.services.profile_service import (
     change_password,
     reset_password,
     get_or_create_current_profile,
@@ -24,7 +24,7 @@ from src.services.profile import (
     addition_friend
 )
 from src.core.db_dependency import get_async_session
-from src.schemas.user import Success
+from src.schemas.user_schema import Success
 router = APIRouter(prefix='/profile', tags=['profile'])
 
 
@@ -98,6 +98,6 @@ async def addition(
         command: CommandSchema,
         current_user: UsersSchema = Depends(get_current_auth_user),
         db: AsyncSession = Depends(get_async_session)
-) -> ResponseAddition:
+) -> ResponseAdditionSchema:
     response = await addition_friend(command.command, user_id, current_user.uid, db)
     return response

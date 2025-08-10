@@ -7,7 +7,7 @@ from sqlalchemy import select, insert
 from pydantic import EmailStr
 
 from src.core.db_dependency import get_async_session
-from src.schemas.user import (
+from src.schemas.user_schema import (
     UsersAddSchema,
     UsersSchema
 )

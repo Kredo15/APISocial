@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from itsdangerous import URLSafeTimedSerializer, BadSignature
 
 from src.core.settings import settings
-from src.cruds.auth import (
+from src.cruds.auth_crud import (
     add_refresh_token,
     revoke_refresh_token,
     revoke_all_refresh_token_for_device
@@ -26,14 +26,14 @@ from src.services.validations import (
     validate_token_type,
     validate_auth_user
 )
-from src.cruds.user import (
+from src.cruds.user_crud import (
     create_user,
     update_last_login,
     get_user,
     user_is_confirmed
 )
-from src.schemas.auth import TokenDataSchema
-from src.schemas.user import UsersAddSchema, UsersSchema
+from src.schemas.auth_schema import TokenDataSchema
+from src.schemas.user_schema import UsersAddSchema, UsersSchema
 from src.message import LogMessages
 from src.tasks.confirmation_email import send_confirmation_email
 from src.services.security import generate_token

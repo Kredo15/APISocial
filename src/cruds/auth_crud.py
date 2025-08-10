@@ -6,8 +6,8 @@ from fastapi import Depends
 from sqlalchemy import select
 
 from src.core.db_dependency import get_async_session
-from src.schemas.user import UsersSchema
-from src.schemas.auth import TokenSchema
+from src.schemas.user_schema import UsersSchema
+from src.schemas.auth_schema import TokenSchema
 from src.database.models.user import TokenOrm
 from src.core.settings import settings
 

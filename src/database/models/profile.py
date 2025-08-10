@@ -32,14 +32,19 @@ class FriendsOrm(Base):
 
     id: Mapped[intpk]
     requester_user_id: Mapped[str] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE")
+        ForeignKey("users.uid", ondelete="CASCADE")
     )
     receiver_user_id: Mapped[str] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE")
+        ForeignKey("users.uid", ondelete="CASCADE")
     )
     status: Mapped[StatusEnum] = mapped_column(default=StatusEnum.pending)
     request_date: Mapped[created_at]
     acceptance_date: Mapped[datetime.date]
 
-    requester: Mapped["UsersOrm"] = relationship(back_populates="requesters")
-    receiver: Mapped["UsersOrm"] = relationship(back_populates="receivers")
+    requester: Mapped["UsersOrm"] = relationship(
+        back_populates="requesters",
+        foreign_keys=[requester_user_id])
+    receiver: Mapped["UsersOrm"] = relationship(
+        back_populates="receivers",
+        foreign_keys=[receiver_user_id]
+    )

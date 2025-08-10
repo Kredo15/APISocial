@@ -15,7 +15,7 @@ from sqlalchemy.orm import joinedload
 from src.core.db_dependency import get_async_session
 from src.database.models.profile import ProfileOrm, FriendsOrm
 from src.database.models.user import UsersOrm
-from schemas.profile import (
+from schemas.profile_schema import (
     ProfileSchema,
     ProfilesSchema,
     FriendSchema

@@ -33,10 +33,14 @@ class UsersOrm(Base):
         uselist=False, back_populates='user', cascade='all, delete-orphan'
     )
     requesters: Mapped[list["FriendsOrm"]] = relationship(
-       back_populates='requester', cascade='all, delete-orphan'
+        back_populates='requester',
+        foreign_keys="FriendsOrm.requester_user_id",
+        cascade='all, delete-orphan'
     )
     receivers: Mapped[list['FriendsOrm']] = relationship(
-       back_populates='receiver', cascade='all, delete-orphan'
+        back_populates='receiver',
+        foreign_keys="FriendsOrm.receiver_user_id",
+        cascade='all, delete-orphan'
     )
 
 

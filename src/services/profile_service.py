@@ -5,15 +5,15 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.enums import StatusEnum
-from schemas.profile import (
+from schemas.profile_schema import (
     ProfilesSchema,
     ProfileSchema,
     ProfileAddSchema,
     ResponseAdditionSchema
 )
 from src.services.validations import validate_password
-from src.cruds.user import user_change_password_db
-from src.cruds.profile import (
+from src.cruds.user_crud import user_change_password_db
+from src.cruds.profile_crud import (
     get_profile,
     create_profile,
     update_profile,
@@ -22,7 +22,7 @@ from src.cruds.profile import (
     send_friend_requester,
     update_status_friend
 )
-from src.schemas.user import (
+from src.schemas.user_schema import (
     UsersSchema,
     ChangePasswordSchema,
     ResetPasswordSchema
@@ -85,9 +85,11 @@ async def get_profile_for_user(
 ) -> ProfileSchema:
     profile = await get_profile(profile_id, db)
     if profile is None:
-        logger.error(LogMessages.PROFILE_NOT_FOUND.format(
-            user_id=user_id,
-            profile_id=profile_id)
+        logger.error(
+            LogMessages.PROFILE_NOT_FOUND.format(
+                user_id=user_id,
+                profile_id=profile_id
+            )
         )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -110,7 +112,9 @@ async def update_profile_for_current_user(
         )
         return profile
     except Exception as errData:
-        logger.error(LogMessages.PROFILE_ERROR_SERVER.format(errData=errData))
+        logger.error(LogMessages.PROFILE_ERROR_SERVER.format(
+            user_id=user_id, errData=errData)
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=errData
@@ -133,6 +137,7 @@ async def addition_friend(
     friend = await check_friend_requester(user_id, str(current_user), db)
     if friend is None and command == "send_request":
         await send_friend_requester(user_id, str(current_user), db)
+        logger.info(LogMessages.FRIEND_SEND_REQUEST.format(user_id=user_id))
         return ResponseAdditionSchema(
             message="Friend request sent"
         )
@@ -156,6 +161,12 @@ async def addition_friend(
         status_request,
         friend.id,
         db
+    )
+    logger.info(
+        LogMessages.FRIEND_RESPONDING_TO_REQUEST.format(
+            response=status_request,
+            user_id=user_id
+        )
     )
     return ResponseAdditionSchema(
         message=message

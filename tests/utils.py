@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.services.security import get_hash_password, decode_jwt
 from src.database.models.user import UsersOrm, TokenOrm
-from src.schemas.user import UsersSchema
+from src.schemas.user_schema import UsersSchema
 from src.core.settings import settings
 from src.services.validations import validate_password
 

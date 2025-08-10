@@ -39,9 +39,10 @@ class FriendSchema(FriendAddSchema):
     acceptance_date: date | None
 
 
-class CommandSchema:
+class CommandSchema(BaseModel):
     command: Literal["send_request", "accept_request", "reject_request"]
 
 
-class ResponseAdditionSchema:
+class ResponseAdditionSchema(BaseModel):
     message: str
+

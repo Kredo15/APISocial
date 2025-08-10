@@ -4,7 +4,7 @@ from datetime import timedelta
 
 from services.security import create_jwt, decode_jwt
 from src.core.settings import settings
-from src.schemas.user import UsersSchema
+from src.schemas.user_schema import UsersSchema
 
 
 logger = logging.getLogger(__name__)

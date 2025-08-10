@@ -6,10 +6,10 @@ from fastapi import HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from email_validator import validate_email, EmailNotValidError
 
-from src.cruds.auth import get_token
+from src.cruds.auth_crud import get_token
 from src.core.settings import settings
-from src.cruds.user import get_user, get_user_for_email
-from src.schemas.user import UsersSchema, UsersAddSchema
+from src.cruds.user_crud import get_user, get_user_for_email
+from src.schemas.user_schema import UsersSchema, UsersAddSchema
 from src.message import LogMessages
 
 logger = logging.getLogger(__name__)

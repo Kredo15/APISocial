@@ -4,10 +4,10 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.services.auth import get_user_by_token_sub
+from src.services.auth_service import get_user_by_token_sub
 from src.message import LogMessages
 from src.core.db_dependency import get_async_session
-from src.schemas.user import UsersSchema
+from src.schemas.user_schema import UsersSchema
 from src.services.validations import verify_refresh_token_for_user
 from src.core.settings import settings
 
