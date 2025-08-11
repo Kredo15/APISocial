@@ -9,14 +9,14 @@ from email_validator import validate_email, EmailNotValidError
 from src.cruds.auth_crud import get_token
 from src.core.settings import settings
 from src.cruds.user_crud import get_user, get_user_for_email
-from src.schemas.user_schema import UsersSchema, UsersAddSchema
+from src.schemas.user_schema import UserSchema, UserAddSchema
 from src.message import LogMessages
 
 logger = logging.getLogger(__name__)
 
 
 async def verify_refresh_token_for_user(
-        user: UsersSchema,
+        user: UserSchema,
         db: AsyncSession
 ) -> bool:
     db_token = await get_token(user, db)
@@ -61,7 +61,7 @@ def valid_email(email: str) -> bool:
 async def validate_auth_user(
         form_data: OAuth2PasswordRequestForm,
         db: AsyncSession
-) -> UsersSchema:
+) -> UserSchema:
     unauthed_exc = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="invalid username or password",
@@ -90,7 +90,7 @@ async def validate_auth_user(
 
 
 async def verify_user(
-        user_data: UsersAddSchema,
+        user_data: UserAddSchema,
         db: AsyncSession
 ) -> bool:
     user_db = await get_user(user_data.username, db)

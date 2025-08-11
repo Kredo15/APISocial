@@ -8,8 +8,8 @@ from pydantic import EmailStr
 
 from src.core.db_dependency import get_async_session
 from src.schemas.user_schema import (
-    UsersAddSchema,
-    UsersSchema
+    UserAddSchema,
+    UserSchema
 )
 from src.database.models.user import UsersOrm
 from src.services.security import get_hash_password
@@ -18,7 +18,7 @@ from src.services.security import get_hash_password
 async def get_user(
         username: str,
         db: Annotated[AsyncSession, Depends(get_async_session)]
-) -> UsersSchema:
+) -> UserSchema:
     user = await db.scalar(select(UsersOrm).where(UsersOrm.username == username))
     return user
 
@@ -26,15 +26,15 @@ async def get_user(
 async def get_user_for_email(
         email: EmailStr,
         db: Annotated[AsyncSession, Depends(get_async_session)]
-) -> UsersSchema:
+) -> UserSchema:
     user = await db.scalar(select(UsersOrm).where(UsersOrm.email == email))
     return user
 
 
 async def create_user(
-        user_data: UsersAddSchema,
+        user_data: UserAddSchema,
         db: Annotated[AsyncSession, Depends(get_async_session)]
-) -> UsersSchema:
+) -> UserSchema:
     hashed_password = get_hash_password(user_data.password)
     data = {
         "email": user_data.email,
@@ -46,7 +46,7 @@ async def create_user(
 
 
 async def update_last_login(
-        user: UsersSchema,
+        user: UserSchema,
         db: Annotated[AsyncSession, Depends(get_async_session)]
 ) -> None:
     now = datetime.utcnow()
@@ -56,7 +56,7 @@ async def update_last_login(
 
 
 async def user_change_password_db(
-        user: UsersSchema,
+        user: UserSchema,
         new_password: str,
         db: Annotated[AsyncSession, Depends(get_async_session)]
 ) -> None:

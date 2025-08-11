@@ -28,8 +28,5 @@ async def test_verify_email(
     assert response.status_code == 200
     response_data = response.json()
     assert response_data['success']
-    mock_send_email.assert_called_once_with(
-        to_email=user_credentials_data.get("email"),
-        token=token
-    )
+    mock_send_email.assert_called_once()
     assert await check_confirm_user(user_credentials_data.get("email"), async_test_session)

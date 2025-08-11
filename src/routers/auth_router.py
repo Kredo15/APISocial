@@ -12,7 +12,7 @@ from src.services.auth_service import (
 from src.services.auth_service import refresh_jwt, logout_user
 from src.core.db_dependency import get_async_session
 from src.schemas.auth_schema import TokenDataSchema, Success
-from src.schemas.user_schema import UsersAddSchema, UsersSchema
+from src.schemas.user_schema import UserAddSchema, UserSchema
 from src.services.dependencies import get_current_auth_user
 
 
@@ -32,7 +32,7 @@ async def login(
 @router.post("/sign-up")
 async def signup(
         response: Response,
-        user: UsersAddSchema,
+        user: UserAddSchema,
         db: AsyncSession = Depends(get_async_session),
 ) -> TokenDataSchema:
     data = await register_user(response, user, db)
@@ -42,7 +42,7 @@ async def signup(
 @router.post("/register_confirm/{token}")
 async def confirm_registration(
         token: str,
-        current_user: UsersSchema = Depends(get_current_auth_user),
+        current_user: UserSchema = Depends(get_current_auth_user),
         db: AsyncSession = Depends(get_async_session)
 ) -> Success:
     await confirm_user(token, current_user, db)
@@ -53,7 +53,7 @@ async def confirm_registration(
 async def refresh(
         response: Response,
         refresh_token: str | None = Cookie(default=None),
-        current_user: UsersSchema = Depends(get_current_auth_user),
+        current_user: UserSchema = Depends(get_current_auth_user),
         db: AsyncSession = Depends(get_async_session)
 ) -> TokenDataSchema:
     data = await refresh_jwt(refresh_token, response, current_user, db)
@@ -64,7 +64,7 @@ async def refresh(
 async def logout(
         request: Request,
         response: Response,
-        current_user: UsersSchema = Depends(get_current_auth_user),
+        current_user: UserSchema = Depends(get_current_auth_user),
         db: AsyncSession = Depends(get_async_session)
 ) -> Success:
     await logout_user(request, response, current_user, db)

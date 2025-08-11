@@ -1,28 +1,28 @@
 import datetime
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, String, Date
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.database.models.base_model import Base, intpk, str_256, created_at
+from src.database.models.base_model import Base, intpk, created_at
 from src.database.enums import GenderEnum, FamilyStatusEnum, StatusEnum
 
 
-class ProfileOrm(Base):
+class ProfilesOrm(Base):
     __tablename__ = "profiles"
 
     id: Mapped[intpk]
     user_id: Mapped[str] = mapped_column(
         ForeignKey("users.uid", ondelete="CASCADE")
     )
-    first_name: Mapped[str_256]
-    last_name: Mapped[str_256]
-    gender: Mapped[GenderEnum]
-    date_of_birth: Mapped[datetime.date]
-    photo: Mapped[str]
-    city: Mapped[str_256]
-    country: Mapped[str_256]
-    family_status: Mapped[FamilyStatusEnum]
-    additional_information: Mapped[str]
+    first_name: Mapped[str] = mapped_column(String(150), nullable=True)
+    last_name: Mapped[str] = mapped_column(String(150), nullable=True)
+    gender: Mapped[GenderEnum] = mapped_column(String(150), nullable=True)
+    date_of_birth: Mapped[datetime.date] = mapped_column(Date, nullable=True)
+    photo: Mapped[str] = mapped_column(String(150), nullable=True)
+    city: Mapped[str] = mapped_column(String(150), nullable=True)
+    country: Mapped[str] = mapped_column(String(150), nullable=True)
+    family_status: Mapped[FamilyStatusEnum] = mapped_column(String(150), nullable=True)
+    additional_information: Mapped[str] = mapped_column(String, nullable=True)
 
     user: Mapped["UsersOrm"] = relationship("UsersOrm", back_populates="profile")
 

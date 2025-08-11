@@ -4,13 +4,13 @@ from datetime import timedelta
 
 from services.security import create_jwt, decode_jwt
 from src.core.settings import settings
-from src.schemas.user_schema import UsersSchema
+from src.schemas.user_schema import UserSchema
 
 
 logger = logging.getLogger(__name__)
 
 
-def create_access_token(user: UsersSchema, jti: str, device_id: str) -> str:
+def create_access_token(user: UserSchema, jti: str, device_id: str) -> str:
     jwt_payload = {
         "jti": jti,
         "sub": user.username,
@@ -25,7 +25,7 @@ def create_access_token(user: UsersSchema, jti: str, device_id: str) -> str:
     )
 
 
-def create_refresh_token(user: UsersSchema, jti: str, device_id: str) -> str:
+def create_refresh_token(user: UserSchema, jti: str, device_id: str) -> str:
     jwt_payload = {
         "jti": jti,
         "sub": user.username,

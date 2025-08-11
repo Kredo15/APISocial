@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.services.auth_service import get_user_by_token_sub
 from src.message import LogMessages
 from src.core.db_dependency import get_async_session
-from src.schemas.user_schema import UsersSchema
+from src.schemas.user_schema import UserSchema
 from src.services.validations import verify_refresh_token_for_user
 from src.core.settings import settings
 
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 async def get_current_auth_user(
         token: str = Depends(oauth2_scheme),
         db: AsyncSession = Depends(get_async_session)
-) -> UsersSchema:
+) -> UserSchema:
     user = await get_user_by_token_sub(token, settings.jwt_settings.ACCESS_TOKEN_TYPE, db)
     # Проверяем, что refresh токен не анулирован
     valid_token = await verify_refresh_token_for_user(user, db)

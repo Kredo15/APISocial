@@ -33,7 +33,7 @@ from src.cruds.user_crud import (
     user_is_confirmed
 )
 from src.schemas.auth_schema import TokenDataSchema
-from src.schemas.user_schema import UsersAddSchema, UsersSchema
+from src.schemas.user_schema import UserAddSchema, UserSchema
 from src.message import LogMessages
 from src.tasks.confirmation_email import send_confirmation_email
 from src.services.security import generate_token
@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 
 
 async def create_tokens(
-        user: UsersSchema,
+        user: UserSchema,
         db: AsyncSession,
         jti: str = get_jti_or_device_id(),
         device_id: str = get_jti_or_device_id()
@@ -75,7 +75,7 @@ async def login_for_access_token(
 
 async def register_user(
         response: Response,
-        user: UsersAddSchema,
+        user: UserAddSchema,
         db: AsyncSession
 ) -> TokenDataSchema:
     await verify_user(user, db)
@@ -94,7 +94,7 @@ async def register_user(
 
 async def confirm_user(
         token: str,
-        current_user: UsersSchema,
+        current_user: UserSchema,
         db: AsyncSession
 ) -> None:
     serializer = URLSafeTimedSerializer(settings.email_settings.SECRET_KEY_EMAIL.get_secret_value())
@@ -114,7 +114,7 @@ async def confirm_user(
 async def refresh_jwt(
         refresh_token: str,
         response: Response,
-        current_user: UsersSchema,
+        current_user: UserSchema,
         db: AsyncSession
 ) -> TokenDataSchema:
     payload = decode_jwt(refresh_token.encode())
@@ -133,7 +133,7 @@ async def refresh_jwt(
 async def logout_user(
         request: Request,
         response: Response,
-        current_user: UsersSchema,
+        current_user: UserSchema,
         db: AsyncSession
 ) -> None:
     payload = get_payload_with_header(request.headers['authorization'])
@@ -148,7 +148,7 @@ async def get_user_by_token_sub(
         token: str,
         token_type: str,
         db: AsyncSession
-) -> UsersSchema:
+) -> UserSchema:
     payload = get_current_token_payload(token)
     validate_token_type(payload, token_type)
     username: str = payload.get("sub")

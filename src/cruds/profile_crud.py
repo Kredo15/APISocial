@@ -13,7 +13,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import joinedload
 
 from src.core.db_dependency import get_async_session
-from src.database.models.profile import ProfileOrm, FriendsOrm
+from src.database.models.profile import ProfilesOrm, FriendsOrm
 from src.database.models.user import UsersOrm
 from schemas.profile_schema import (
     ProfileSchema,
@@ -26,7 +26,7 @@ async def create_profile(
         user_id: str,
         db: Annotated[AsyncSession, Depends(get_async_session)]
 ) -> ProfileSchema:
-    profile = await db.scalar(insert(ProfileOrm).values(uid=user_id).returning(ProfileOrm))
+    profile = await db.scalar(insert(ProfilesOrm).values(user_id=user_id).returning(ProfilesOrm))
     await db.commit()
     return profile
 
@@ -35,7 +35,7 @@ async def get_profile(
         user_id: str,
         db: Annotated[AsyncSession, Depends(get_async_session)]
 ) -> ProfileSchema | None:
-    profile = await db.scalar(select(ProfileOrm).where(ProfileOrm.user_id == user_id))
+    profile = await db.scalar(select(ProfilesOrm).where(ProfilesOrm.user_id == user_id))
     return profile
 
 
@@ -44,21 +44,22 @@ async def update_profile(
         user_id: str,
         db: AsyncSession
 ) -> ProfileSchema:
-    profile = await db.scalar(
-        update(ProfileOrm).where(ProfileOrm.user_id == user_id)
-        .values(**data_profile).returning(ProfileOrm)
+    await db.execute(
+        update(ProfilesOrm).where(ProfilesOrm.user_id == user_id)
+        .values(**data_profile)
     )
-    return profile
+    await db.commit()
+    return await get_profile(user_id, db)
 
 
 async def get_profiles(
         db: Annotated[AsyncSession, Depends(get_async_session)]
 ) -> ProfilesSchema:
-    profiles = await db.scalars(select(ProfileOrm).options(
-        joinedload(ProfileOrm.user)
-    ).where(UsersOrm.is_active == True)
-                                )
-    return ProfilesSchema(profiles=profiles.all())
+    profiles = await db.scalars(select(ProfilesOrm).options(
+            joinedload(ProfilesOrm.user)
+        ).where(UsersOrm.is_active == True)
+    )
+    return ProfilesSchema(**profiles.all().__dict__)
 
 
 async def send_friend_requester(

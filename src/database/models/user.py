@@ -26,10 +26,10 @@ class UsersOrm(Base):
     created_at: Mapped[created_at]
     last_login: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
-    token: Mapped[list["TokenOrm"]] = relationship(
+    token: Mapped[list["TokensOrm"]] = relationship(
        back_populates='user', cascade='all, delete-orphan'
     )
-    profile: Mapped["ProfileOrm"] = relationship(
+    profile: Mapped["ProfilesOrm"] = relationship(
         uselist=False, back_populates='user', cascade='all, delete-orphan'
     )
     requesters: Mapped[list["FriendsOrm"]] = relationship(
@@ -44,7 +44,7 @@ class UsersOrm(Base):
     )
 
 
-class TokenOrm(Base):
+class TokensOrm(Base):
     __tablename__ = "tokens"
 
     jti: Mapped[str] = mapped_column(primary_key=True)

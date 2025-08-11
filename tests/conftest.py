@@ -2,11 +2,13 @@ import uuid
 import pytest_asyncio
 import pytest
 from httpx import ASGITransport, AsyncClient
+import random
 
 from src.main import app
 from src.core.db_dependency import engine, async_session_maker
 from src.core.settings import settings
 from src.database.models.base_model import Base
+from database.enums import GenderEnum, FamilyStatusEnum
 from tests.utils import faker
 
 
@@ -48,4 +50,19 @@ def data_for_token() -> dict[str, str]:
     return {
         "jti": str(uuid.uuid4()),
         "device_id": str(uuid.uuid4())
+    }
+
+
+@pytest.fixture
+def data_for_profile() -> dict[str, str]:
+    return {
+        "first_name": faker.first_name(),
+        "last_name": faker.last_name(),
+        "gender": random.choice(list(GenderEnum)),
+        "date_of_birth": f'{faker.date_of_birth()}',
+        "photo": faker.file_path(category='image'),
+        "city": faker.city(),
+        "country": faker.country(),
+        "family_status": random.choice(list(FamilyStatusEnum)),
+        "additional_information": faker.text()
     }

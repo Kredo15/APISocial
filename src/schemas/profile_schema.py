@@ -1,18 +1,17 @@
 from datetime import date
 from typing import List, Literal
 
-from fastapi import UploadFile
 from pydantic import BaseModel
 
 from src.database.enums import GenderEnum, FamilyStatusEnum, StatusEnum
 
 
 class ProfileAddSchema(BaseModel):
-    first_name: str
-    last_name: str
+    first_name: str | None = None
+    last_name: str | None = None
     gender: GenderEnum | None = None
-    date_of_birth: date = None
-    photo: UploadFile | None = None
+    date_of_birth: date | None = None
+    photo: str | None = None
     city: str | None = None
     country: str | None = None
     family_status: FamilyStatusEnum | None = None

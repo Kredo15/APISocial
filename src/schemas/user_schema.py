@@ -4,16 +4,15 @@ from uuid import UUID
 from pydantic import BaseModel, EmailStr
 
 
-class UsersAddSchema(BaseModel):
+class UserAddSchema(BaseModel):
     email: EmailStr
     username: str
     password: str
 
 
-class UsersSchema(UsersAddSchema):
+class UserSchema(UserAddSchema):
     uid: UUID
-    first_name: str | None
-    last_name: str | None
+    username: str | None
     active: bool
     is_verified: bool
     is_administrator: bool

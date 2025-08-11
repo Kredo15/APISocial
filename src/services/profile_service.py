@@ -23,7 +23,7 @@ from src.cruds.profile_crud import (
     update_status_friend
 )
 from src.schemas.user_schema import (
-    UsersSchema,
+    UserSchema,
     ChangePasswordSchema,
     ResetPasswordSchema
 )
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 
 async def change_password(
-        user: UsersSchema,
+        user: UserSchema,
         user_change_password_body: ChangePasswordSchema,
         db: AsyncSession
 ) -> None:
@@ -54,7 +54,7 @@ async def change_password(
 
 
 async def reset_password(
-        user: UsersSchema,
+        user: UserSchema,
         user_reset_password_body: ResetPasswordSchema,
         db: AsyncSession
 ) -> None:
@@ -103,7 +103,7 @@ async def update_profile_for_current_user(
         user_id: UUID,
         db: AsyncSession
 ) -> ProfileSchema:
-    data_profile = data_profile.dict()
+    data_profile = data_profile.model_dump()
     try:
         profile = await update_profile(
             data_profile=data_profile,
