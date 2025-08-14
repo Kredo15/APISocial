@@ -4,7 +4,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.services.security import generate_token
-from tests.utils import check_confirm_user
+from tests.auth.utils_auth import check_confirm_user
 
 
 @patch('src.tasks.confirmation_email.send_confirmation_email.delay')

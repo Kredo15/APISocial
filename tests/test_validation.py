@@ -4,7 +4,7 @@ import pytest
 
 from src.services.security import get_hash_password
 from src.services.validations import validate_password, valid_email
-from tests.utils import faker
+from tests.for_test import faker
 
 
 def _get_correct_password_and_hash() -> dict[str, str]:

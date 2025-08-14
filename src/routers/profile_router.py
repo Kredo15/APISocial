@@ -25,6 +25,7 @@ from src.services.profile_service import (
 )
 from src.core.db_dependency import get_async_session
 from src.schemas.user_schema import Success
+
 router = APIRouter(prefix='/profile', tags=['profile'])
 
 
@@ -92,7 +93,7 @@ async def get_profiles(
     return result
 
 
-@router.post('/friend/addition')
+@router.post('/friend/addition/{user_id}')
 async def addition(
         user_id: str,
         command: CommandSchema,

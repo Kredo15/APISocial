@@ -39,7 +39,8 @@ class FriendsOrm(Base):
     )
     status: Mapped[StatusEnum] = mapped_column(default=StatusEnum.pending)
     request_date: Mapped[created_at]
-    acceptance_date: Mapped[datetime.date]
+    acceptance_date: Mapped[datetime.date] = mapped_column(nullable=True)
+    friend: Mapped[bool] = mapped_column(default=False)
 
     requester: Mapped["UsersOrm"] = relationship(
         back_populates="requesters",

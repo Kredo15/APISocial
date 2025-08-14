@@ -20,6 +20,7 @@ from schemas.profile_schema import (
     ProfilesSchema,
     FriendSchema
 )
+from src.database.enums import GenderEnum, FamilyStatusEnum
 
 
 async def create_profile(
@@ -55,11 +56,25 @@ async def update_profile(
 async def get_profiles(
         db: Annotated[AsyncSession, Depends(get_async_session)]
 ) -> ProfilesSchema:
-    profiles = await db.scalars(select(ProfilesOrm).options(
-            joinedload(ProfilesOrm.user)
-        ).where(UsersOrm.is_active == True)
+    profiles_db = await db.scalars(
+        select(ProfilesOrm).join(UsersOrm).where(UsersOrm.is_active == True)
     )
-    return ProfilesSchema(**profiles.all().__dict__)
+    profiles = [
+        ProfileSchema(
+            id=profile.id,
+            first_name=profile.first_name,
+            last_name=profile.last_name,
+            gender=GenderEnum(profile.gender) if profile.gender else None,
+            date_of_birth=profile.date_of_birth,
+            photo=profile.first_name,
+            city=profile.photo,
+            country=profile.country,
+            family_status=FamilyStatusEnum(profile.family_status) if profile.family_status else None,
+            additional_information=profile.additional_information,
+        )
+        for profile in profiles_db.unique().all()
+    ]
+    return ProfilesSchema(profiles=profiles)
 
 
 async def send_friend_requester(

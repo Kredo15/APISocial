@@ -8,28 +8,26 @@ from tests.for_test import (
     create_test_user,
     faker
 )
+from tests.profile.utils_profile import create_profile
 
 
 @pytest.mark.asyncio
-async def test_user_change_password_invalid(
+async def test_get_faker_profile(
         async_client: AsyncClient,
         async_test_session: AsyncSession,
         user_credentials_data: dict,
-        data_for_token: dict
+        data_for_token: dict,
+        data_for_profile: dict
 ) -> None:
     user = await create_test_user(user_credentials_data, async_test_session)
     access_token = create_test_access_token(user, data_for_token['device_id'])
     refresh_token = await create_test_refresh_token(user, data_for_token, async_test_session)
     assert refresh_token is not None
-    new_password = faker.password()
-    response = await async_client.patch(
-        url="/profile/change-password",
-        headers={'Authorization': f'Bearer {access_token}'},
-        json={
-            "old_password": faker.password(),
-            "new_password": new_password
-        }
+    await create_profile(user.uid, async_test_session)
+    response = await async_client.get(
+        url=f"/profile/get/{faker.uuid4()}",
+        headers={'Authorization': f'Bearer {access_token}'}
     )
-    assert response.status_code == 401
+    assert response.status_code == 404
     response_data = response.json()
-    assert response_data['detail'] == "Old password provided doesn't match, please try again"
+    assert response_data['detail'] == "page not found"

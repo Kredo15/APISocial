@@ -9,7 +9,7 @@ from src.core.db_dependency import engine, async_session_maker
 from src.core.settings import settings
 from src.database.models.base_model import Base
 from database.enums import GenderEnum, FamilyStatusEnum
-from tests.utils import faker
+from tests.for_test import faker
 
 
 @pytest_asyncio.fixture(autouse=True)

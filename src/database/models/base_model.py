@@ -3,11 +3,9 @@ from typing import Annotated
 
 from sqlalchemy import String, text
 from sqlalchemy.orm import DeclarativeBase, mapped_column
-from sqlalchemy.dialects.postgresql import UUID
 
 str_256 = Annotated[str, 256]
 intpk = Annotated[int, mapped_column(primary_key=True)]
-id_uuid = UUID(as_uuid=True)
 created_at = Annotated[datetime, mapped_column(server_default=text("TIMEZONE('utc', now())"))]
 updated_at = Annotated[datetime, mapped_column(
         server_default=text("TIMEZONE('utc', now())"),
