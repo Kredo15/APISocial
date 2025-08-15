@@ -37,14 +37,33 @@ def check_data_response(
     return all([data_for_profile[key] == response_data[key] for key in data_for_profile.keys()])
 
 
-async def create_users(async_session: AsyncSession) -> list:
-    users = [
-        {
+def get_user_data() -> dict:
+    return {
             'uid': faker.uuid4(),
             'email': faker.email(),
             'username': faker.user_name(),
             'password': get_hash_password(faker.password())
         }
+
+
+def get_profile_data(user_uid: str) -> dict:
+    return {
+            "user_id": user_uid,
+            "first_name": faker.first_name(),
+            "last_name": faker.last_name(),
+            "gender": random.choice(list(GenderEnum)),
+            "date_of_birth": faker.date_of_birth(),
+            "photo": faker.file_path(category='image'),
+            "city": faker.city(),
+            "country": faker.country(),
+            "family_status": random.choice(list(FamilyStatusEnum)),
+            "additional_information": faker.text()
+        }
+
+
+async def create_users(async_session: AsyncSession) -> list:
+    users = [
+        get_user_data()
         for _ in range(3)
     ]
     async with async_session:
@@ -56,18 +75,7 @@ async def create_users(async_session: AsyncSession) -> list:
 async def create_profiles(async_session: AsyncSession) -> list:
     users = await create_users(async_session)
     profiles = [
-        {
-            "user_id": user["uid"],
-            "first_name": faker.first_name(),
-            "last_name": faker.last_name(),
-            "gender": random.choice(list(GenderEnum)),
-            "date_of_birth": faker.date_of_birth(),
-            "photo": faker.file_path(category='image'),
-            "city": faker.city(),
-            "country": faker.country(),
-            "family_status": random.choice(list(FamilyStatusEnum)),
-            "additional_information": faker.text()
-        }
+        get_profile_data(user["uid"])
         for user in users
     ]
     async with async_session:

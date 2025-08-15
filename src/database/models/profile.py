@@ -5,6 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database.models.base_model import Base, intpk, created_at
 from src.database.enums import GenderEnum, FamilyStatusEnum, StatusEnum
+from src.database.models.user import UsersOrm
 
 
 class ProfilesOrm(Base):
@@ -40,7 +41,7 @@ class FriendsOrm(Base):
     status: Mapped[StatusEnum] = mapped_column(default=StatusEnum.pending)
     request_date: Mapped[created_at]
     acceptance_date: Mapped[datetime.date] = mapped_column(nullable=True)
-    friend: Mapped[bool] = mapped_column(default=False)
+    is_friend: Mapped[bool] = mapped_column(default=False)
 
     requester: Mapped["UsersOrm"] = relationship(
         back_populates="requesters",
@@ -49,3 +50,8 @@ class FriendsOrm(Base):
         back_populates="receivers",
         foreign_keys=[receiver_user_id]
     )
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'friend',
+        'inherit_condition': receiver_user_id == UsersOrm.uid
+    }

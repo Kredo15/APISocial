@@ -1,4 +1,5 @@
-import pytest
+from unittest.mock import patch, Mock
+
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,8 +10,9 @@ from tests.auth.utils_auth import (
 )
 
 
-@pytest.mark.asyncio
+@patch('src.tasks.confirmation_email.send_confirmation_email.delay')
 async def test_signup(
+        mock_send_email: Mock,
         async_client: AsyncClient,
         user_credentials_data: dict,
         async_test_session: AsyncSession) -> None:
@@ -26,3 +28,4 @@ async def test_signup(
     await verify_refresh_token(response.cookies.get("refresh_token"),
                                user_credentials_data.get("username"),
                                async_test_session)
+    mock_send_email.assert_called_once()

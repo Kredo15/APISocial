@@ -20,7 +20,8 @@ from src.cruds.profile_crud import (
     get_profiles,
     check_friend_requester,
     send_friend_requester,
-    update_status_friend
+    update_status_friend,
+    get_friends
 )
 from src.schemas.user_schema import (
     UserSchema,
@@ -135,6 +136,7 @@ async def addition_friend(
         db: AsyncSession
 ) -> ResponseAdditionSchema:
     friend = await check_friend_requester(user_id, str(current_user), db)
+    is_friend = False
     if friend is None and command == "send_request":
         await send_friend_requester(user_id, str(current_user), db)
         logger.info(LogMessages.FRIEND_SEND_REQUEST.format(user_id=user_id))
@@ -147,6 +149,7 @@ async def addition_friend(
         )
     if friend and command == "accept_request":
         status_request = StatusEnum.accepted
+        is_friend = True
         message = "Friend request accepted"
     elif friend and command == "reject_request":
         status_request = StatusEnum.rejected
@@ -160,6 +163,7 @@ async def addition_friend(
     await update_status_friend(
         status_request,
         friend.id,
+        is_friend,
         db
     )
     logger.info(
@@ -171,3 +175,11 @@ async def addition_friend(
     return ResponseAdditionSchema(
         message=message
     )
+
+
+async def get_friends_for_curr_user(
+        user_id: UUID,
+        db: AsyncSession
+) -> ProfilesSchema:
+    friends = await get_friends(str(user_id), db)
+    return friends

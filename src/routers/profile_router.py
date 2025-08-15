@@ -21,7 +21,8 @@ from src.services.profile_service import (
     get_profile_for_user,
     update_profile_for_current_user,
     get_all_profiles,
-    addition_friend
+    addition_friend,
+    get_friends_for_curr_user
 )
 from src.core.db_dependency import get_async_session
 from src.schemas.user_schema import Success
@@ -101,4 +102,13 @@ async def addition(
         db: AsyncSession = Depends(get_async_session)
 ) -> ResponseAdditionSchema:
     response = await addition_friend(command.command, user_id, current_user.uid, db)
+    return response
+
+
+@router.get("/friends")
+async def get_friends(
+        current_user: UserSchema = Depends(get_current_auth_user),
+        db: AsyncSession = Depends(get_async_session)
+) -> ProfilesSchema:
+    response = await get_friends_for_curr_user(current_user.uid, db)
     return response

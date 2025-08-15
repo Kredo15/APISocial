@@ -8,9 +8,9 @@ from sqlalchemy import (
     insert,
     update,
     and_,
-    or_
+    or_,
+    union
 )
-from sqlalchemy.orm import joinedload
 
 from src.core.db_dependency import get_async_session
 from src.database.models.profile import ProfilesOrm, FriendsOrm
@@ -57,7 +57,7 @@ async def get_profiles(
         db: Annotated[AsyncSession, Depends(get_async_session)]
 ) -> ProfilesSchema:
     profiles_db = await db.scalars(
-        select(ProfilesOrm).join(UsersOrm).where(UsersOrm.is_active == True)
+        select(ProfilesOrm).join(UsersOrm).where(UsersOrm.is_active)
     )
     profiles = [
         ProfileSchema(
@@ -110,9 +110,50 @@ async def check_friend_requester(
 async def update_status_friend(
         status: str,
         friend_id: int,
+        is_friend: bool,
         db: Annotated[AsyncSession, Depends(get_async_session)]
 ) -> None:
     await db.execute(
         update(FriendsOrm).where(FriendsOrm.id == friend_id)
-        .values(status=status, acceptance_date=date.today())
+        .values(status=status, acceptance_date=date.today(), is_friend=is_friend)
     )
+    await db.commit()
+
+
+async def get_friends(
+        user_id: str,
+        db: Annotated[AsyncSession, Depends(get_async_session)]
+) -> ProfilesSchema:
+    u = union(
+        select(FriendsOrm.requester_user_id)
+        .where(
+            FriendsOrm.receiver_user_id == user_id,
+            FriendsOrm.is_friend
+        ),
+        select(FriendsOrm.receiver_user_id)
+        .where(
+            FriendsOrm.requester_user_id == user_id,
+            FriendsOrm.is_friend
+        )
+    )
+    friends_id = await db.scalars(u)
+    friends_id_list = [str(friend) for friend in friends_id.all()]
+    profiles = await db.scalars(
+        select(ProfilesOrm).filter(ProfilesOrm.user_id.in_(friends_id_list))
+    )
+    friends = [
+        ProfileSchema(
+            id=friend.id,
+            first_name=friend.first_name,
+            last_name=friend.last_name,
+            gender=GenderEnum(friend.gender) if friend.gender else None,
+            date_of_birth=friend.date_of_birth,
+            photo=friend.first_name,
+            city=friend.photo,
+            country=friend.country,
+            family_status=FamilyStatusEnum(friend.family_status) if friend.family_status else None,
+            additional_information=friend.additional_information,
+        )
+        for friend in profiles.all()
+    ]
+    return ProfilesSchema(profiles=friends)

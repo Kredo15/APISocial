@@ -1,5 +1,3 @@
-import uuid
-
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -37,8 +35,8 @@ async def test_friend_addition(
         'password': faker.password()
     }
     data_for_token_friend = {
-        "jti": str(uuid.uuid4()),
-        "device_id": str(uuid.uuid4())
+        "jti": faker.uuid4(),
+        "device_id": faker.uuid4()
     }
     friend_user = await create_test_user(user_credentials_data_friend, async_test_session)
     friend_access_token = create_test_access_token(friend_user, data_for_token_friend['device_id'])
