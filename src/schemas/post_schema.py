@@ -1,4 +1,6 @@
 from datetime import datetime
+from typing import List
+
 from pydantic import BaseModel
 
 
@@ -11,3 +13,7 @@ class PostSchema(PostAddSchema):
     author_id: str
     created_at: datetime
     updated_at: datetime | None = None
+
+
+class PostsSchema(BaseModel):
+    posts: List[PostSchema]
